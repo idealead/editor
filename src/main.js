@@ -5,13 +5,13 @@ import store from './store'
 import upperFirst from 'lodash/upperFirst'
 import camelCase from 'lodash/camelCase'
 import ElementUI from 'element-ui';
+import axios from 'axios';
 import _ from 'lodash';
 import 'element-ui/lib/theme-chalk/index.css';
-import './font/font.css';
 Vue.use(ElementUI);
 Vue.config.productionTip = false
 
-
+axios.defaults.baseURL = '/api'
 
 const requireComponent = require.context(
     // 其组件目录的相对路径

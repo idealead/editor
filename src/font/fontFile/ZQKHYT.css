@@ -1,0 +1,12 @@
+@font-face {
+    font-family: "ZQKHYT";
+    src: url("ZQKHYT.eot"); /* IE9 */
+    src: url("ZQKHYT.eot?#iefix") format("embedded-opentype"), /* IE6-IE8 */
+    url("ZQKHYT.woff") format("woff"), /* chrome, firefox */
+    url("ZQKHYT.ttf") format("truetype"), /* chrome, firefox, opera, Safari, Android, iOS 4.2+ */
+    url("ZQKHYT.svg#ZQKHYT") format("svg"); /* iOS 4.1- */
+    font-style: normal;
+    font-weight: normal;
+}
+
+

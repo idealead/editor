@@ -6,7 +6,7 @@
         </div>
     </div>
 </template>
-<style type="text/css">
+<style type="text/css" scoped>
 .layer_show {
     height: 60px;
     background-color: white;
@@ -57,7 +57,6 @@ export default {
             bus.$on('update-layer', function(data) {
             	data=data.reverse();
                 me.$set(me.layer, 'layer', data)
-                console.log(me.layer.layer)
             })
     },
     methods: {
