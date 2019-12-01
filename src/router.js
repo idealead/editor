@@ -1,11 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
-import bus from "@/eventBus.js"
 Vue.use(Router)
 
- 
-const newrouter=new Router({
+const newrouter = new Router({
   routes: [
     {
       path: '/canvas',
