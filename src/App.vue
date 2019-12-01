@@ -78,7 +78,8 @@ export default {
 .font {
   position: absolute;
   right: -10%;
-  font-family: "pfht", "japanhymc", "yrdzsl-Bold";
+  font-family: "pfht", "japanhymc", "yrdzsl-Bold", "fzchft", "fzmhft", "fzytft",
+    "FZHLFW", "bulmer_bt", "FZHLFW";
   transform: translateX(1000%);
 }
 
