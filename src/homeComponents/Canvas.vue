@@ -95,7 +95,8 @@
                   <el-col :span="24">
                     <div class="grid-content text_left">
                       加粗
-                      <el-switch class="align_right" :value="this.edit_bar.text.fontWeight == 'normal' ? false : true" active-color="#13ce66" inactive-color="#ff4949" @change="fontWeightChange"></el-switch>
+                      <el-switch class="align_right" :value="this.edit_bar.text.fontWeight == 'normal' ? false : true" active-color="#13ce66" inactive-color="#ff4949" @change="fontWeightChange">
+                      </el-switch>
                     </div>
                   </el-col>
                 </el-row>
@@ -270,6 +271,19 @@
             </div>
           </div>
         </el-tooltip>
+        <el-tooltip class="item" effect="light" content="倾斜" placement="right" popper-class="tooltip">
+          <div class="edit_btn rotation_btn" v-show="edit_bar.btn.skew" @click.self="show_skew_block" :class="{ rotation_btn_active: edit_bar.edit_rotation }">
+            <div class="skew_block" v-show="edit_bar.edit_skew">
+              <div class="block_title">倾斜</div>
+              <div class="skew_body_block">
+                <p>X轴倾斜</p>
+                <el-slider v-model="edit_bar.skewX" @change="skewChange('x')" :min="-1" :max="1" :show-tooltip="true" :step="0.1"></el-slider>
+                <p>Y轴倾斜</p>
+                <el-slider v-model="edit_bar.skewY" @change="skewChange('y')" :min="-1" :max="1" :show-tooltip="true" :step="0.1"></el-slider>
+              </div>
+            </div>
+          </div>
+        </el-tooltip>
         <el-tooltip class="item" effect="light" content="透明度" placement="right" popper-class="tooltip">
           <div class="edit_btn opacity_btn" v-show="edit_bar.btn.opacity" @click.self="show_opacity_block" :class="{ opacity_btn_active: edit_bar.edit_opacity }">
             <div class="opacity_block" v-show="edit_bar.edit_opacity">
@@ -414,6 +428,7 @@ export default {
         unlock_text: "解锁"
       },
       edit_bar: {
+        // 右侧编辑栏按钮
         btn: {
           show: false,
           text: true,
@@ -426,8 +441,10 @@ export default {
           align: false,
           shadow: false,
           edit: false,
-          change_image: false
+          change_image: false,
+          skew: false
         },
+        // 右侧编辑栏点击按钮出现的面板(显示与否的控制参数)
         edit_text: false,
         edit_location: false,
         edit_layer: false,
@@ -435,6 +452,8 @@ export default {
         edit_align: false,
         edit_shadow: false,
         edit_fontFamily_select: false,
+        edit_rotation: false,
+        edit_skew: false,
         text: {
           fontSize: 0,
           leading: 0,
@@ -457,7 +476,7 @@ export default {
           { name: "方正粗黑繁体", value: "fzchft" },
           { name: "方正美黑繁体", value: "fzmhft" },
           { name: "方正姚体繁体", value: "fzytft" },
-          { name: "FZHLFW", value: "FZHLFW" },
+          { name: "FZHLFW", value: "FZHLFW" }
           // { name: "阿里巴巴普惠体-B", value: "Alibaba-PuHuiTi1b85c2df2f206a3" },
           // { name: "阿里巴巴普惠体-L", value: "Alibaba-PuHuiTi1b85fc9538206a3" },
           // { name: "汉仪铸字苏打黑", value: "HYZhuZiSuDaHeiW" },
@@ -481,7 +500,9 @@ export default {
         ],
         edit_opacity: false,
         opacity: 100,
-        rotation: 0
+        rotation: 0,
+        skewX: 0,
+        skewY: 0
       },
       active_log: [],
       active_index: -1,
@@ -523,8 +544,8 @@ export default {
         title_obj: null,
         subtitle_obj: null
       },
-      main_hue: 0 ,//色相
-      father_id: ''
+      main_hue: 0, //色相
+      father_id: ""
     };
   },
   computed: {
@@ -707,9 +728,12 @@ export default {
         me.initPixiApp();
       }
     }, 400);
-    
   },
   methods: {
+    setSkew: function() {
+      const me = this;
+      me.in_move.skew.set(-0.5, 0);
+    },
     allHue: function(value) {
       const me = this;
       value *= 360;
@@ -744,8 +768,8 @@ export default {
       //加载压缩字体包的请求
       const me = this;
       return new Promise(function(resolve, reject) {
-        if(data.font_name=='st'){
-          resolve('st')
+        if (data.font_name == "st") {
+          resolve("st");
         }
         axios({
           method: "post",
@@ -891,8 +915,7 @@ export default {
           formdata.append("upload_file_once", file);
           axios({
             method: "post",
-            url:
-              `${me.api.upload_file_once}1.html`,
+            url: `${me.api.upload_file_once}1.html`,
             data: formdata
           })
             .then(function(response) {
@@ -1034,7 +1057,7 @@ export default {
         author: me.user_data.id,
         material_content: me.json_f(funcData.material_id),
         name: funcData.mould_name,
-        id: '',
+        id: "",
         t_width: me.canvas_width,
         t_height: me.canvas_height,
         level: level,
@@ -1043,13 +1066,13 @@ export default {
         has_title: 0,
         has_subtitle: 0,
         condition: 1,
-        father_id: ''
+        father_id: ""
       };
       if (me.user_type == "client") {
         // id = parseInt(me.tempId)
         tempData.level = "storage";
         //用户修改的模板绑定根id
-        tempData.father_id= me.father_id
+        tempData.father_id = me.father_id;
       } else if (me.user_type == "designer") {
         tempData.author = me.user_data.id;
         if (me.tempId) tempData.id = parseInt(me.tempId);
@@ -1106,8 +1129,7 @@ export default {
       const me = this;
       return axios({
         method: "post",
-        url:
-          `${me.api.upload_file_once}1.html`,
+        url: `${me.api.upload_file_once}1.html`,
         data: formdata
       })
         .then(function(response) {
@@ -1119,11 +1141,8 @@ export default {
         });
     },
     uploadMF: function(data) {
-      const me=this
-      return axios.post(
-        me.api.upload_material,
-        data
-      )
+      const me = this;
+      return axios.post(me.api.upload_material, data);
     },
     uploadAllMaterial: function(material_data) {
       //上传全部素材返回素材id，有组合的为一个素材（建议设计师不要使用组合）
@@ -1214,7 +1233,7 @@ export default {
             });
 
             // 获取模板根ID
-            me.father_id=response.data.data.father_id
+            me.father_id = response.data.data.father_id;
             me.initPixiApp();
           })
           .catch(function(error) {
@@ -1356,6 +1375,7 @@ export default {
       me.$set(me.edit_bar, "edit_align", false);
       me.$set(me.edit_bar, "edit_shadow", false);
       me.$set(me.edit_bar, "edit_fontFamily_select", false);
+      me.$set(me.edit_bar, "edit_skew", false);
     },
     showEdit: function(type) {
       const me = this;
@@ -1377,7 +1397,8 @@ export default {
             align: false,
             shadow: false,
             edit: false,
-            change_image: true
+            change_image: true,
+            skew: true
           };
           break;
         case "text":
@@ -1393,7 +1414,8 @@ export default {
             align: true,
             shadow: true,
             edit: true,
-            change_image: false
+            change_image: false,
+            skew: true
           };
           break;
         case "structure_text":
@@ -1409,7 +1431,8 @@ export default {
             align: false,
             shadow: true,
             edit: true,
-            change_image: false
+            change_image: false,
+            skew: false
           };
           break;
         case "temporary":
@@ -1425,7 +1448,8 @@ export default {
             align: false,
             shadow: false,
             edit: false,
-            change_image: false
+            change_image: false,
+            skew: false
           };
           break;
         case "association":
@@ -1441,7 +1465,8 @@ export default {
             align: false,
             shadow: false,
             edit: false,
-            change_image: false
+            change_image: false,
+            skew: false
           };
           break;
         case "image_in":
@@ -1457,7 +1482,8 @@ export default {
             align: false,
             shadow: false,
             edit: false,
-            change_image: true
+            change_image: true,
+            skew: true
           };
           break;
         case "text_in":
@@ -1473,7 +1499,8 @@ export default {
             align: true,
             shadow: true,
             edit: true,
-            change_image: false
+            change_image: false,
+            skew: true
           };
           break;
       }
@@ -1566,7 +1593,7 @@ export default {
       me.in_move.style = style;
       me.in_move.style.fontSize = value;
       // me.in_move.style.lineHeight = me.in_move.style.fontSize + me.in_move.lineHeightM;
-      me.p_app.renderer.render(me.in_move);
+      // me.p_app.renderer.render(me.in_move);
       //
       me.containerLine(me.in_move, false);
       me.scaleTextEnd(me.in_move);
@@ -1716,6 +1743,13 @@ export default {
       }
       me.$set(me.edit_bar, "edit_rotation", true);
     },
+    show_skew_block: function() {
+      const me = this;
+      me.hide_edit_f();
+      me.$set(me.edit_bar, "skewX", me.in_move.skew.x);
+      me.$set(me.edit_bar, "skewY", me.in_move.skew.y);
+      me.$set(me.edit_bar, "edit_skew", true);
+    },
     showColorBlock: function() {
       const me = this;
       me.hide_edit_f();
@@ -1751,6 +1785,14 @@ export default {
       }
       //存储进活动日志
       me.pushActiveLog(true);
+    },
+    skewChange: function(xy) {
+      const me = this;
+      let [x, y] =
+        xy === "x"
+          ? [me.edit_bar.skewX, me.in_move.skew.y]
+          : [me.in_move.skew.x, me.edit_bar.skewY];
+      me.in_move.skew.set(x, y);
     },
     locationMove: function(way, d_value = 0) {
       other_func.locationMove.bind(this)(way, d_value);
@@ -1805,12 +1847,13 @@ export default {
     loadSprite: function(set_data, render_add, func) {
       container_func.loadSprite.bind(this)(set_data, render_add, func);
     },
-    loadSvgImg: function(src, sprite, my_set_data, render_add,func) {
+    loadSvgImg: function(src, sprite, my_set_data, render_add, func) {
       container_func.loadSvgImg.bind(this)(
         src,
         sprite,
         my_set_data,
-        render_add,func
+        render_add,
+        func
       );
     },
     addImg: function(sprite, set_data, render_add) {

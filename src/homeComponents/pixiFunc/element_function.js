@@ -326,7 +326,7 @@ export default {
       if (me.in_move.type == 'text') {
         if (me.textTime) {
           me.$set(me, 'textTime', false)
-          me.scaleAll(n, d_value, me.in_move.text_num)
+          me.scaleAll(n, me.in_move.text_num)
           me.$nextTick(() => {
             me.$set(me, 'textTime', true)
           })

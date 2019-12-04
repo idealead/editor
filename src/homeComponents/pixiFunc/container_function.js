@@ -465,6 +465,10 @@ export default {
     sprite.m_comp_name = set_data.m_comp_name
     sprite.lock = false
     sprite.role = 'normal'
+    // 倾斜功能
+    if (set_data.skew) {
+      sprite.skew.set(set_data.skew.x, set_data.skew.y)
+    }
     if (render_add) {
       sprite.rotation = set_data.rotation
       sprite.rotation_num = set_data.rotation

@@ -521,7 +521,8 @@ export default {
         style: {},
         alpha: 1,
         size: {},
-        arc: {}
+        arc: {},
+        skew: {}
       }
       let log_data = []
       let data = {}
@@ -592,6 +593,10 @@ export default {
           element_data.position.y = obj.parent.y
           element_data.alpha = obj.alpha
           element_data.role = obj.role
+          element_data.skew = {
+            x: obj.skew.x,
+            y: obj.skew.y
+          }
           data.children[0].ass_children.push(element_data)
           if (i == me.container_arr.length - 1) {
             log_data.push(data)
