@@ -67,7 +67,7 @@ export default {
   },
   mounted: function() {
     const me = this;
-      bus.$on('dcenterRightC', function(index) {
+      bus.$off('dcenterRightC').$on('dcenterRightC', function(index) {
         me.$set(me, 'right_index', index)
       })
   },

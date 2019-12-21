@@ -1,32 +1,61 @@
 <template>
-  <div class="new_layer_block" :class="[layer_show?'layer_show':'layer_hide',activeName=='layer'?'':'textBlock',(!layer_show && activeName=='text')?'text_layer_hide':'']">
+  <div
+    class="new_layer_block"
+    :class="[layer_show?'layer_show':'layer_hide',activeName=='layer'?'':'textBlock',(!layer_show && activeName=='text')?'text_layer_hide':'']"
+  >
     <div class="layer_hide_btn" @click="showHideLayer">
       <div class="hide_arrow" :class="layer_show?'arrow_left':'arrow_right'"></div>
     </div>
     <div class="layer_main_block">
       <el-tabs v-model="activeName" @tab-click="tabClick">
-        <el-tab-pane label="图层" name="layer"></el-tab-pane>
         <el-tab-pane label="推荐文案" name="text"></el-tab-pane>
+        <el-tab-pane label="图层" name="layer"></el-tab-pane>
       </el-tabs>
       <div class="scroll" v-show="activeName=='layer'">
-        <div class="new_layer_show" v-for="item in layer.layer" :key="item.id" @click='click_in_move(item.id)' :class="{'layer_select':item.select}" v-show="(item.type=='image'||item.type=='text')">
-          <div v-if="item.type=='image'" class="layer_block" :data-layer-id="item.id" style='background-color:#f3f2f5'>
+        <div
+          class="new_layer_show"
+          v-for="item in layer.layer"
+          :key="item.id"
+          @click="click_in_move(item.id)"
+          :class="{'layer_select':item.select}"
+          v-show="(item.type=='image'||item.type=='text')"
+        >
+          <div
+            v-if="item.type=='image'"
+            class="layer_block"
+            :data-layer-id="item.id"
+            style="background-color:#f3f2f5"
+          >
             <img :src="item.srcData" class="image_layer" />
             <p class="layer_block_des">元素</p>
             <p class="desRole" v-if="item.role">{{item.role}}</p>
-            <p class="desPosition" v-if="item.replacePosition||item.replacePosition==0">位置：{{item.replacePosition}}</p>
+            <p
+              class="desPosition"
+              v-if="item.replacePosition||item.replacePosition==0"
+            >位置：{{item.replacePosition}}</p>
           </div>
-          <div v-else-if="item.type=='text'" class="layer_block" :data-layer-name="item.id"
-            :style="{'font-family':item.fontFamily,'font-size':item.fontSize+'px',color:item.color,'text-shadow':`4px 4px ${item.dropShadowBlur}px ${item.dropShadowColor}`}">{{item.text}}
+          <div
+            v-else-if="item.type=='text'"
+            class="layer_block"
+            :data-layer-name="item.id"
+            :style="{'font-family':item.fontFamily,'font-size':item.fontSize+'px',color:item.color,'text-shadow':`4px 4px ${item.dropShadowBlur}px ${item.dropShadowColor}`}"
+          >
+            {{item.text}}
             <p class="layer_block_des">文本</p>
             <p class="desRole" v-if="item.role">{{item.role}}</p>
+            <p class="desPosition" v-if="item.textPosition">{{item.textPosition}}</p>
           </div>
         </div>
       </div>
       <div class="text_recommend" v-show="activeName=='text'">
-        <el-card class="box-card" v-for="(item,index) in tempText" :key="index">
-          <div v-for="(it,i) in item" :key="i" class="text-item">
-            {{it}}
+        <el-card
+          class="box-card"
+          v-for="(item,index) in tempText"
+          :key="index"
+          :class="`box-card${index}`"
+        >
+          <div @click="recommend_text(item.content,index)">
+            <div v-for="(it,i) in item.content" :key="i" class="text-item">{{it}}</div>
           </div>
         </el-card>
       </div>
@@ -36,14 +65,36 @@
 <style type="text/css" lang='less' scoped>
 @layer-block-width: 200px;
 @layer-block-text-width: 280px;
-.box-card{
+.box-card {
   width: calc(100% - 40px);
   box-sizing: border-box;
   margin-bottom: 10px;
+  cursor: pointer;
 }
-.text-item{
+.mya {
+  animation: myaa 0.3s;
+  @keyframes myaa {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(0.9);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+// .clicka{
+//   animation: bounce-in .5s;
+// }
+.box-card:hover {
+  width: calc(100% - 30px);
+}
+.text-item {
   font-size: 14px;
-  padding:5px;
+  padding: 5px;
 }
 .layer_block_des {
   position: absolute;
@@ -78,8 +129,9 @@
   height: calc(100% - 8.2vh);
   position: absolute;
   top: 8.2vh;
+  left: 0;
   background-color: white;
-  transition: left 0.3s,width 0.2s;
+  transition: transform 0.3s, width 0.2s;
   transition-timing-function: ease-out;
 }
 .textBlock {
@@ -87,14 +139,16 @@
 }
 
 .layer_show {
-  left: 0;
+  transform: translateX(0);
 }
 
 .layer_hide {
-  left: -@layer-block-width;
+  transform: translateX(-@layer-block-width);
+  // left: -@layer-block-width;
 }
 .text_layer_hide {
-  left: -@layer-block-text-width;
+  transform: translateX(-@layer-block-text-width);
+  // left: -@layer-block-text-width;
 }
 
 .layer_hide_btn {
@@ -102,7 +156,7 @@
   height: 154px;
   background-repeat: no-repeat;
   background-size: cover;
-  background-image: url("../assets/side_block/hideBtn.png");
+  background-image: url('../assets/side_block/hideBtn.png');
   position: absolute;
   right: -25px;
   top: 50%;
@@ -131,7 +185,7 @@
   transform: translateY(-50%);
   background-repeat: no-repeat;
   background-size: cover;
-  background-image: url("../assets/side_block/arrow2.png");
+  background-image: url('../assets/side_block/arrow2.png');
 }
 
 .arrow_right {
@@ -180,7 +234,7 @@
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   cursor: pointer;
-  background-image: url("../assets/side_block/mosaic.svg");
+  background-image: url('../assets/side_block/mosaic.svg');
   background-size: 20px 20px;
   background-repeat: repeat;
 }
@@ -201,11 +255,11 @@
     width: @layer-block-text-width;
   }
   .layer_hide {
-    left: -@layer-block-width;
+    transform: translateX(-@layer-block-width);
   }
 
   .text_layer_hide {
-    left: -@layer-block-text-width;
+    transform: translateX(-@layer-block-text-width);
   }
   .new_layer_show {
     width: 110px;
@@ -239,11 +293,11 @@
 }
 </style>
 <script type="text/javascript">
-import { mapState, mapActions, mapGetters } from "vuex";
-import bus from "@/eventBus.js";
-import axios from "axios";
+import { mapState, mapActions, mapGetters } from 'vuex'
+import bus from '@/eventBus.js'
+import axios from 'axios'
 export default {
-  name: "new-layer",
+  name: 'new-layer',
   props: {
     msg: String //例子
   },
@@ -252,7 +306,7 @@ export default {
       user_data: state => state.user_data,
       tempId: state => state.tempId,
       api: state => state.api
-    }),
+    })
   },
   data: function() {
     return {
@@ -260,40 +314,68 @@ export default {
         layer: []
       },
       layer_show: true,
-      activeName: "layer", // 图层和文案侧边栏
-      tempText: [['横批:属你最美','上联：鼠为生肖首','下联：春乃岁时先 '],['横批：属你最美','上联：脱单脱贫暴富','下联：变白变美暴瘦']]
-    };
+      activeName: 'text', // 图层和文案侧边栏
+      tempText: [{ content: '暂无推荐文案' }]
+    }
   },
   created: function() {
-    const me = this;
-    bus.$on("update-layer", function(data) {
-      data = data.reverse();
-      me.$set(me.layer, "layer", data);
-    });
-  },
-  mounted: function() {
-    const me=this;
-    axios({
-      method: 'get',
-      url: `${me.api.get_word}?father_id=${parseInt(me.tempId)}`
-    }).then(res=>{
-      me.$set(me,'tempText',res.data.data)
+    const me = this
+    bus.$off('update-layer').$on('update-layer', function(data) {
+      data = data.reverse()
+      me.$set(me.layer, 'layer', data)
+    })
+    bus.$off('getRecommend').$on('getRecommend', father_id => {
+      me.getRecommend(father_id)
     })
   },
+  mounted: function() {},
   methods: {
     click_in_move: function(id) {
-      const me = this;
-      bus.$emit("layer_click", id);
+      const me = this
+      bus.$emit('layer_click', id)
     },
     showHideLayer: function() {
-      const me = this;
-      me.$set(me, "layer_show", !me.layer_show);
+      const me = this
+      me.$set(me, 'layer_show', !me.layer_show)
     },
     tabClick: function(tab, event) {
-      const me = this;
+      const me = this
       // if (me.activeName == "text") {
       // }
+    },
+    getRecommend: function(father_id) {
+      const me = this
+      axios({
+        method: 'get',
+        url: `${me.api.get_word}?template_id=${parseInt(father_id)}`
+      })
+        .then(res => {
+          me.$set(me, 'tempText', res.data.data instanceof Array && res.data.data.length > 0 ? res.data.data : [{ content: '暂无推荐文案' }])
+        })
+        .catch(_ => {
+          me.$set(me, 'tempText', [{ content: '暂无推荐文案' }])
+        })
+    },
+    animateCSS: function(element, animationName, callback) {
+      const node = document.querySelector(element)
+      node.classList.add(animationName)
+      // node.classList.add('animated', animationName)
+      let handleAnimationEnd = function() {
+        node.classList.remove(animationName)
+        node.removeEventListener('animationend', handleAnimationEnd)
+
+        if (typeof callback === 'function') callback()
+      }
+      node.addEventListener('animationend', handleAnimationEnd)
+    },
+    recommend_text: function(textarr, index) {
+      if (textarr !== '暂无推荐文案') {
+        setTimeout(() => {
+          bus.$emit('recommendText', textarr)
+        }, 400)
+      }
+      this.animateCSS(`.box-card${index}`, 'mya')
     }
   }
-};
+}
 </script>

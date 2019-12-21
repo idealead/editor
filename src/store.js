@@ -9,7 +9,7 @@ export default new Vuex.Store({
     canvas_width: 750,
     canvas_height: 1334,
     user_type: 'designer',
-    user_name: '小智',
+    // user_name: '小智',
     user_data: { id: 13 },
     structure_id: '', // 当时是为了默认骨架设置的
     new_structure_id: '', // 添加新骨架，设置绑定对应模板id

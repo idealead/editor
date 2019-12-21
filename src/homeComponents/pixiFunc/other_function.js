@@ -43,6 +43,7 @@ export default {
       if (item.name == obj.name) {
         item.position.set(x, y)
       }
+      item = null
     }
   },
   changeAssociation: function (obj) {
@@ -469,6 +470,7 @@ export default {
           layer_data.fontSize = traget.style.fontSize * 0.3
           if (layer_data.fontSize <= 14) layer_data.fontSize = 14
           if (layer_data.fontSize >= 52) layer_data.fontSize = 52
+          if (traget.textPosition) layer_data.textPosition = traget.textPosition
           layer_data.fontFamily = traget.style.fontFamily
           if (traget.style.dropShadow) {
             layer_data.dropShadow = true
@@ -506,7 +508,7 @@ export default {
           association_id: ''
         }]
       }
-      let obj_data_example = {
+      let obj_data_example = { // 事例
         src: '',
         type: '',
         id: '',
@@ -540,18 +542,18 @@ export default {
             data.children[0].association_id = obj.association_name
             ass_id = obj.association_name
           }
-          if (obj.type == 'image') {
+          if (obj.type === 'image') {
             element_data.src = obj.srcData
             element_data.type = 'image'
             element_data.file_id = obj.file_id
             element_data.size.width = obj.width
             element_data.size.height = obj.height
-            element_data.replacePosition = obj.replacePosition
+            element_data.replacePosition = obj.replacePosition // 裂变的图片替换位置标记
             // 如果是弧形装饰图片，要加上arc属性
             if (obj.role.search('arc') !== -1) {
               element_data.arc = me.arc_obj[obj.role].arc
             }
-          } else if (obj.type == 'text') {
+          } else if (obj.type === 'text') {
             element_data.type = 'text'
             let style = {
               fontFamily: '思源黑体',
@@ -575,7 +577,8 @@ export default {
               trim: false,
               whiteSpace: 'normal',
               leading: 0,
-              letterSpacing: 0
+              letterSpacing: 0,
+              align: 'left'
             }
             for (let key in style) {
               style[key] = obj.style[key]
@@ -585,6 +588,9 @@ export default {
             element_data.text = obj.text
             element_data.size.width = obj.width
             element_data.size.height = obj.height
+            element_data.textReplace = obj.textReplace // 记录文案替换位置序号和名称
+            element_data.textPosition = obj.textPosition
+            element_data.textReverse = obj.textReverse
           }
           element_data.id = obj.name
           element_data.rotation = obj.rotation
@@ -597,10 +603,13 @@ export default {
             x: obj.skew.x,
             y: obj.skew.y
           }
+          element_data.hueNumber = obj.hueNumber
           data.children[0].ass_children.push(element_data)
           if (i == me.container_arr.length - 1) {
             log_data.push(data)
           }
+          obj = null
+          element_data = null
         }
       }
       if (me.active_log.length >= 30) {
@@ -716,11 +725,129 @@ export default {
     me.$set(me.right_block, 'show', false)
   },
   setPosition: function (num) {
+    // 裂变功能的替换位置
     const me = this
     me.in_move.replacePosition = num
     me.updateLayer()
     // 存储进活动日志
     me.pushActiveLog(true)
     me.$set(me.right_block, 'show', false)
+  },
+  setReplaceText: function () {
+    const me = this
+    me.$set(me, 'mouldFuncShow', true)
+  },
+  updateTextPosition: function (arr) {
+    this.$set(this, 'textPositionArr', arr)
+  },
+  handleCommand: function (index, item) {
+    // 选择了文案替换位置
+    const me = this
+    if (index === -1) {
+      me.in_move.textReplace = null
+      me.in_move.textPosition = ''
+    } else {
+      me.in_move.textReplace = index
+      me.in_move.textPosition = item
+    }
+    me.updateLayer()
+    // 存储进活动日志
+    me.pushActiveLog(true)
+    me.$set(me.right_block, 'show', false)
+  },
+  recommendText: function (arr) {
+    const me = this
+    me.fullscreenLoading = true
+    // 点击了推荐文案，要对整个模板对推荐文案部分替换。如果已经删除，则不进行替换。利用map结构，数字0，1，2等作为键名。对应的图层数组做为键值
+    let text = arr
+    let textmap = new Map()
+    let fontFamily = {}
+    for (let i = 0; i < me.container_arr.length; i++) {
+      if (typeof (me.container_arr[i].cont.children[0].textReplace) == 'number') {
+        let textReplace = me.container_arr[i].cont.children[0].textReplace
+        textmap.set(textReplace, textmap.get(textReplace) ? [...textmap.get(textReplace), me.container_arr[i].cont.children[0]] : [me.container_arr[i].cont.children[0]])
+        fontFamily[`${me.container_arr[i].cont.children[0].style.fontFamily}`] =
+          (fontFamily[`${me.container_arr[i].cont.children[0].style.fontFamily}`] ? fontFamily[`${me.container_arr[i].cont.children[0].style.fontFamily}`] : '') +
+          text[textReplace]
+      }
+    }
+    // console.log(textmap)
+    // 获取字体
+    // 字体加载
+    me.getfontFamilyBack(fontFamily).then(() => {
+      // 循环图层替换字体
+      setTimeout(() => {
+        for (let [key, value] of textmap) {
+          if (value.length > 1) {
+            // 比如 【我，爱你】去替换 【你，拜拜】则你图层在拜拜图层之下
+            let start = 0
+            for (let i = 0; i < value.length; i++) {
+              value[i].text = text[key].slice(start, value[i].text.length + start)
+              start += value[i].text.length
+            }
+          } else {
+            let ow = value[0].width
+            if (value[0].textReverse) {
+              let re = text[key].split('')
+              re = re.reverse()
+              value[0].text = re.join('')
+            } else {
+              value[0].text = text[key]
+            }
+            let afterw = value[0].width
+            console.log('原' + ow)
+            console.log('后' + afterw)
+          }
+          textmap.set(key, '')
+        }
+        me.fullscreenLoading = false
+        // 要记录日志更新layer
+        me.pushActiveLog(true)
+        me.updateLayer()
+      }, 1000)
+    })
+  },
+  getfontFamilyBack: function (font_family) {
+    const me = this
+    return new Promise(function (resolve, reject) {
+      me.getAllfontFamily(font_family)
+        .then(function (res) {
+          if (res === 'stf') {
+            resolve()
+            return false
+          }
+          let aarr = []
+          // 加载css文件，从而自动加载woff文件
+          for (let i = 0; i < res.length; i++) {
+            if (res[i].data.code !== 1) continue
+            aarr = [...aarr, ...me.getCssWoff(res[i].data.path, res[i].data.woffPath)]
+            me.dynamicLoadCss(me.api.file_path + res[i].data.path)
+          }
+          axios
+            .all(aarr)
+            .then(function (response) {
+              // 下方的linkcss，以及字体的加载读缓存就好了。
+              setTimeout(() => {
+                // 字体加载完毕回调
+                resolve()
+              }, 50)
+            })
+            .catch(res => {
+              reject(res)
+            })
+        })
+        .catch(res => {
+          reject(res)
+        })
+    })
+  },
+  textReverse: function (hastext) {
+    const me = this
+    let text = hastext ? hastext.split('') : me.in_move.text.split('')
+    text = text.reverse()
+    me.in_move.text = text.join('')
+    me.in_move.textReverse = true
+    // 存储进活动日志
+    me.pushActiveLog(true)
   }
 }

@@ -167,6 +167,8 @@ export default {
         me.canvas_height = me.expand ? parseInt(data.height) : parseInt(response.data.data.template_height)
         me.template_name = response.data.data.template_name
         me.origin_preview_img = response.data.data.preview_img
+        // 设置根id
+        me.father_id = response.data.data.father_id
         // 执行方法
         me.initPixiApp()
       }).catch(function (error) {
@@ -227,9 +229,9 @@ export default {
                 width: null,
                 height: null
               }
-              // size.width 应该为缩放后的大小，不一定是原大小
-              originMian.width = data[i].children[0].ass_children[k].size.width
-              originMian.height = data[i].children[0].ass_children[k].size.height
+              // size.width 应该为缩放后的大小，不一定是原大小，最小200*200
+              originMian.width = data[i].children[0].ass_children[k].size.width < 200 ? 200 : data[i].children[0].ass_children[k].size.width
+              originMian.height = data[i].children[0].ass_children[k].size.height < 200 ? 200 : data[i].children[0].ass_children[k].size.height
               me.originMian_obj[`${data[i].children[0].ass_children[k].id}`] = originMian
             }
             src_from = me.changeMain
@@ -286,50 +288,91 @@ export default {
       return false
     }
     // 字体加载
-    me.getAllfontFamily(font_family)
-      .then(function (res) {
-        // 加载css文件，从而自动加载woff文件
-        for (let i = 0; i < res.length; i++) {
-          if (res[i].data.code !== 1) continue
+    me.getfontFamilyBack(font_family).then(() => {
+      setTimeout(() => {
+        // 字体加载完毕回调
+        img_src = Array.from(new Set(img_src))
+        me.originImg(originMainImg, function () {
+          me.r_app.loader.add(img_src, {
+            crossOrigin: true
+          }).load(function () {
+            me.renderF(data)
+          })
+        })
+      }, 100)
+    }).catch(err => {
+      me.reject(err)
+    })
+    // me.getAllfontFamily(font_family)
+    //   .then(function (res) {
+    //     // 加载css文件，从而自动加载woff文件
+    //     for (let i = 0; i < res.length; i++) {
+    //       if (res[i].data.code !== 1) continue
+    //       axios
+    //         .all(me.getCssWoff(res[i].data.path, res[i].data.woffPath))
+    //         .then(function (response) {
+    //           // 下方的linkcss，以及字体的加载读缓存就好了。
+    //           me.dynamicLoadCss('http://font.idealead.hbindex.com' + res[i].data.path)
+    //           if (i + 1 >= res.length) {
+    //           }
+    //         })
+    //         .catch(err => {
+    //           me.reject(err)
+    //         })
+    //     }
+    //   })
+    //   .catch(function (err) {
+    //     me.reject(err)
+    //   })
+  },
+  getfontFamilyBack: function (font_family) {
+    const me = this
+    return new Promise(function (resolve, reject) {
+      me.getAllfontFamily(font_family)
+        .then(function (res) {
+          if (res === 'stf') {
+            resolve()
+            return false
+          }
+          let aarr = []
+          // 加载css文件，从而自动加载woff文件
+          for (let i = 0; i < res.length; i++) {
+            if (res[i].data.code !== 1) continue
+            aarr = [...aarr, ...me.getCssWoff(res[i].data.path, res[i].data.woffPath)]
+            me.dynamicLoadCss('http://font.idealead.hbindex.com' + res[i].data.path)
+          }
           axios
-            .all(me.getCssWoff(res[i].data.path, res[i].data.woffPath))
+            .all(aarr)
             .then(function (response) {
               // 下方的linkcss，以及字体的加载读缓存就好了。
-              me.dynamicLoadCss('http://font.idealead.hbindex.com' + res[i].data.path)
-              if (i + 1 >= res.length) {
-                setTimeout(() => {
-                  // 字体加载完毕回调
-                  img_src = Array.from(new Set(img_src))
-                  me.originImg(originMainImg, function () {
-                    me.r_app.loader.add(img_src, {
-                      crossOrigin: true
-                    }).load(function () {
-                      me.renderF(data)
-                    })
-                  })
-                }, 20)
-              }
+              setTimeout(() => {
+                // 字体加载完毕回调
+                resolve()
+              }, 50)
             })
-            .catch(err => {
-              me.reject(err)
+            .catch(res => {
+              reject(res)
             })
-        }
-      })
-      .catch(function (err) {
-        me.reject(err)
-      })
+        })
+        .catch(res => {
+          reject(res)
+        })
+    })
   },
   getCssWoff: function (cssPath, woffPath) {
     // const me = this
     return [
       axios({
+        headers: {
+          'Accept': 'text/css,*/*;q=0.1'
+        },
         method: 'get',
         url: `http://font.idealead.hbindex.com${cssPath}?my_flag=1`,
         responseType: 'ms-stream'
       }),
       axios({
         method: 'get',
-        url: `http://font.idealead.hbindex.com${woffPath}?my_flag=1`,
+        url: `http://font.idealead.hbindex.com${woffPath}`,
         responseType: 'ms-stream'
       })
     ]
@@ -339,14 +382,14 @@ export default {
     var link = document.createElement('link')
     link.type = 'text/css'
     link.rel = 'stylesheet'
-    link.href = url
+    link.href = `${url}?my_flag=1`
     head.appendChild(link)
   },
   fontPost: function (data) {
     // const me = this
     // id为1则表示，是用户端，模板列表渲染使用的字体剪切
     let postD = {
-      id: 1,
+      user_id: 1,
       font_name: data.font_name,
       text: data.text,
       my_flag: 1
@@ -363,12 +406,14 @@ export default {
     const me = this
     let allArr = []
     for (let key in font_family) {
-      allArr.push(
-        me.fontPost({
-          font_name: `${key}`,
-          text: font_family[key]
-        })
-      )
+      if (key !== 'st') {
+        allArr.push(
+          me.fontPost({
+            font_name: `${key}`,
+            text: font_family[key]
+          })
+        )
+      }
     }
     return axios.all(allArr)
   },
@@ -402,11 +447,13 @@ export default {
     // 判断有没有弧形文字，渲染弧形文字,弧形单个文字只用于预览图，简单渲染******************************************************************************************************************************
     if (me.arc_title && me.arc_titleImg) {
       let wordArr = me.arc_title.text.split('')
-      me.renderARC('arc_title', wordArr)
+      let textReplace = typeof (me.arc_title.textReplace) === 'number' ? me.arc_title.textReplace : null
+      me.renderARC('arc_title', wordArr, textReplace)
     }
     if (me.arc_subtitle && me.arc_subtitleImg) {
       let wordArr = me.arc_subtitle.text.split('')
-      me.renderARC('arc_subtitle', wordArr)
+      let textReplace = typeof (me.arc_subtitle.textReplace) === 'number' ? me.arc_subtitle.textReplace : null
+      me.renderARC('arc_subtitle', wordArr, textReplace)
     }
     // 判断有没有弧形文字，渲染弧形文字********************************************************************************************************************************
     me.renderStage()
@@ -447,7 +494,7 @@ export default {
       return [replaceData[0].file_id, replaceData[0].src]
     }
   },
-  renderARC: function (titleType, wordArr) {
+  renderARC: function (titleType, wordArr, textReplace) {
     const me = this
     let setData = null
     let imgSetData = null
@@ -517,6 +564,7 @@ export default {
       newD.text = mtext
       newD.rotation = newDeg
       newD.role = 'normal'
+      newD.textReplace = textReplace
       me.newContainerText(newD, true, true)// 渲染后的弧形文字不保存进入日志，所以不会留下数据
     }
   },
@@ -541,8 +589,8 @@ export default {
               width: 0,
               height: 0
             }
-            me.originMian_obj.normal.width = sprite.width
-            me.originMian_obj.normal.height = sprite.height
+            me.originMian_obj.normal.width = sprite.width < 200 ? 200 : sprite.width
+            me.originMian_obj.normal.height = sprite.height < 200 ? 200 : sprite.height
             callback()
           }
         })
@@ -705,6 +753,17 @@ export default {
     sprite.m_comp_name = set_data.m_comp_name
     sprite.lock = false
     sprite.role = 'normal'
+    // 倾斜功能
+    if (set_data.skew) {
+      sprite.skew.set(set_data.skew.x, set_data.skew.y)
+    }
+    if (typeof (set_data.hueNumber) === 'number') {
+      sprite.hueNumber = set_data.hueNumber
+      set_data.hueNumber *= 360
+      let filter = new PIXI.filters.ColorMatrixFilter()
+      filter.hue(set_data.hueNumber, true)
+      sprite.filters = [filter]
+    }
     if (render_add) {
       sprite.rotation = set_data.rotation
       sprite.rotation_num = set_data.rotation
@@ -716,15 +775,15 @@ export default {
     // 替换
     if (sprite.role == 'logo' && me.changeLogo) {
       if (sprite.width >= sprite.height) {
-        if (sprite.width > 300) sprite.scale.set(300 / sprite.width)
+        if (sprite.width > 200) sprite.scale.set(200 / sprite.width)
       } else {
-        if (sprite.height > 300) sprite.scale.set(300 / sprite.height)
+        if (sprite.height > 200) sprite.scale.set(200 / sprite.height)
       }
     } else if (sprite.role == 'main' && me.originMian_obj[`${set_data.id}`]) {
       let o_ratio = me.originMian_obj[`${set_data.id}`].width / me.originMian_obj[`${set_data.id}`].height
       let n_ratio = sprite.originalw / sprite.originalh
       if (n_ratio >= o_ratio) {
-        sprite.scale.set((me.originMian_obj[`${set_data.id}`].width / sprite.originalw) + 1)
+        sprite.scale.set(me.originMian_obj[`${set_data.id}`].width / sprite.originalw)
       } else {
         sprite.scale.set(me.originMian_obj[`${set_data.id}`].height / sprite.originalh)
       }
@@ -856,6 +915,26 @@ export default {
     richText.m_comp_name = set_data.m_comp_name
     richText.lock = false
     richText.role = 'normal'
+    // 倾斜功能
+    if (set_data.skew) {
+      richText.skew.set(set_data.skew.x, set_data.skew.y)
+    }
+    // 文案替换功能
+    if (typeof (set_data.textReplace) === 'number') {
+      richText.textReplace = set_data.textReplace
+    }
+    // 文本倒序
+    if (set_data.textReverse) {
+      richText.textReverse = true
+    }
+    // 色相功能
+    if (typeof (set_data.hueNumber) === 'number') {
+      richText.hueNumber = set_data.hueNumber
+      set_data.hueNumber *= 360
+      let filter = new me.mypixi.filters.ColorMatrixFilter()
+      filter.hue(set_data.hueNumber, true)
+      richText.filters = [filter]
+    }
     if (render_add) {
       richText.rotation = set_data.rotation
       richText.rotation_num = set_data.rotation
@@ -1039,7 +1118,8 @@ export default {
       text: '',
       style: {},
       alpha: 1,
-      size: {}
+      size: {},
+      skew: {}
     }
     let log_data = []
     let data = {}
@@ -1092,7 +1172,8 @@ export default {
               trim: false,
               whiteSpace: 'normal',
               leading: 0,
-              letterSpacing: 0
+              letterSpacing: 0,
+              align: 'left'
             }
             for (let key in style) {
               style[key] = obj.style[key]
@@ -1110,6 +1191,10 @@ export default {
           element_data.position.y = obj.parent.y
           element_data.alpha = obj.alpha
           element_data.role = obj.role
+          element_data.skew = {
+            x: obj.skew.x,
+            y: obj.skew.y
+          }
           data.children[0].ass_children.push(element_data)
         }
         if (i == me.container_arr.length - 1) {
@@ -1403,7 +1488,7 @@ export default {
   },
   axiosTempF: function (response, funcData) {
     const me = this
-    // 分为用户模板保存，设计师模板保存，渲染临时模板保存
+    // 分为用户模板保存，渲染临时模板保存
     let tempData = {
       preview: response.data.data.file_id,
       author: 1,
@@ -1413,7 +1498,7 @@ export default {
       t_width: me.canvas_width,
       t_height: me.canvas_height,
       level: 'temporary',
-      father_id: me.tempId
+      father_id: me.father_id
     }
     // 用户修改的模板绑定根id
     // 有素材集，模板预览图id，模板名称，用户id，可以真正上传模板了

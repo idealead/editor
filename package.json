@@ -1,5 +1,5 @@
 {
-  "name": "editor_t",
+  "name": "e-new",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,25 +9,29 @@
   },
   "dependencies": {
     "axios": "^0.19.0",
-    "core-js": "^2.6.5",
     "element-ui": "^2.10.1",
     "es6-promise": "^4.2.8",
-    "less": "^3.10.3",
-    "less-loader": "^5.0.0",
     "lodash": "^4.17.15",
     "pixi.js": "^5.0.4",
+    "vue-lazyload": "^1.3.3",
+    "core-js": "^3.4.3",
     "vue": "^2.6.10",
-    "vue-router": "^3.0.3",
-    "vuex": "^3.0.1"
+    "vue-router": "^3.1.3",
+    "vuex": "^3.1.2"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.9.0",
-    "@vue/cli-plugin-eslint": "^3.9.0",
-    "@vue/cli-service": "^3.9.0",
+    "@vue/cli-plugin-babel": "^4.1.0",
+    "@vue/cli-plugin-eslint": "^4.1.0",
+    "@vue/cli-plugin-router": "^4.1.0",
+    "@vue/cli-plugin-vuex": "^4.1.0",
+    "@vue/cli-service": "^4.1.0",
     "@vue/eslint-config-standard": "^4.0.0",
-    "babel-eslint": "^10.0.1",
+    "babel-eslint": "^10.0.3",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
+    "imagemin-webpack-plugin": "^2.4.2",
+    "less": "^3.0.4",
+    "less-loader": "^5.0.0",
     "vue-template-compiler": "^2.6.10"
   }
 }

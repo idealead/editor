@@ -1,3 +1,5 @@
+// 引入插件
+var ImageminPlugin = require('imagemin-webpack-plugin').default
 module.exports = {
   publicPath: './',
   devServer: {
@@ -14,6 +16,21 @@ module.exports = {
           '^/api': ''
         }
       }
+    }
+  },
+  lintOnSave: true,
+  configureWebpack: config => {
+    if (process.env.NODE_ENV === 'production') {
+      // config.optimization.minimizer[0].options.terserOptions.compress.warnings = false
+      config.optimization.minimizer[0].options.terserOptions.compress.drop_console = true
+      config.optimization.minimizer[0].options.terserOptions.compress.drop_debugger = true
+      config.optimization.minimizer[0].options.terserOptions.compress.pure_funcs = ['console.log']
+      // 压缩图片
+      config.plugins.push(new ImageminPlugin({
+        pngquant: {// 图片质量
+          quality: '95-100'
+        }
+      }))
     }
   }
 }

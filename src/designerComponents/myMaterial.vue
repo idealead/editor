@@ -5,7 +5,7 @@
       <div slot="file" slot-scope="{file}" class="imgDiv">
         <img
         class="el-upload-list__item-thumbnail"
-        :src="file.url" alt=""
+        v-lazy="file.url" alt=""
         >
         <span class="el-upload-list__item-actions">
         <span
@@ -193,7 +193,7 @@ export default {
       api: state => state.api
     }),
     uploadUrl: function() {
-      return `http://dev.cyrd.gdinsight.com/api/files/upload_file_once/author_id/${this.user_data.id}.html`
+      return `${this.api.upload_file_once}${this.user_data.id}.html`
     }
   },
   created: function() {
@@ -247,7 +247,7 @@ export default {
     },
     handleData: function(file) {
       //修改上传图片的数据
-      const me = this;
+      const me = this
       console.log(file)
       if (file.response) {
         me.$set(me, 'file_id', file.response.data.file_id)
@@ -314,10 +314,10 @@ export default {
       this.dialogImageUrl = file.url;
       this.dialogVisible = true;
     },
-    handleDownload(file) {
-      console.log(file);
+    handleDownload (file) {
+      console.log(file)
     }
-  },
+  }
 }
 
 </script>

@@ -23,33 +23,44 @@
       <div class="addPop_image_blcok" v-show="image_block_show">
         <div class="addPop_upload_demo">
           <div class="el-upload-list">
-            <div class="chosseImg" v-for="(item,index) in fileList.list" :key="index" @click="add_element_image(item)">
+            <el-upload
+              class="uploadbtn"
+              :action="uploadUrl"
+              list-type="picture-card"
+              :on-success="on_success"
+              :on-preview="add_element_image"
+              :data="mydata"
+              :before-upload="before_upload"
+              :show-file-list="false"
+            >
+              <i class="el-icon-plus"></i>
+              <!-- <el-button size="small" type="primary">点击上传</el-button> -->
+              <!-- <div slot="tip" class="el-upload__tip">
+            <p slot="tip" class="addPop_back" @click="back" v-if="!image_change">返回</p>
+              </div>-->
+            </el-upload>
+            <div
+              class="chosseImg"
+              v-for="(item, index) in fileList.list"
+              :key="index"
+              @click="add_element_image(item)"
+            >
               <img :src="item.src" />
             </div>
           </div>
         </div>
-        <!-- <el-upload
-          class="addPop_upload_demo"
-          :action="uploadUrl"
-          :on-success="on_success"
-          :on-preview="add_element_image"
-          :file-list="fileList.list"
-          list-type="picture"
-          :data="mydata"
-          :before-upload="before_upload"
-        >
-          <el-button size="small" type="primary">点击上传</el-button>
-          <div slot="tip" class="el-upload__tip">
-            只能上传jpg/png文件，且不超过500kb
-            <p slot="tip" class="addPop_back" @click="back" v-if="!image_change">返回</p>
-          </div>
-        </el-upload>-->
       </div>
       <div class="addPop_close" @click="closePop"></div>
     </div>
   </transition>
 </template>
-<style type="text/css" lang='less'>
+<style type="text/css" lang="less" scoped>
+.uploadbtn {
+  text-align: center;
+  display: inline-block;
+  overflow: hidden;
+  margin: 5px;
+}
 .chosseImg {
   width: 100px;
   height: 100px;
@@ -62,7 +73,7 @@
   cursor: pointer;
   img {
     object-fit: contain;
-    width:100%;
+    width: 100%;
     height: 100%;
   }
 }
@@ -95,15 +106,16 @@
   height: calc(100% - 50px);
   overflow-y: auto;
   margin-top: 10px;
+  transform: translatex(-8.5px);
 }
 
-.addPop_upload_demo .el-button {
+.uploadbtn .el-button {
   background-color: #fff;
   color: #ce3939;
   border: 1px solid #ce3939;
 }
 
-.addPop_upload_demo .el-button:hover {
+.uploadbtn .el-button:hover {
   background-color: #ce3939;
   color: #fff;
 }
@@ -113,7 +125,6 @@
   height: 100%;
   overflow: hidden;
   display: inline-block;
-  padding-top: 3%;
   box-sizing: border-box;
 }
 
@@ -164,23 +175,26 @@
 }
 
 .addPop {
-  width: 1231px;
-  height: 293px;
+  width: 1300px;
+  height: 300px;
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%);
-  background-image: url("../assets/canvas/addPop.png");
-  background-repeat: no-repeat;
-  background-size: cover;
+  transform: translateX(-50%) translateZ(0);
+  border-top-right-radius: 20px;
+  border-top-left-radius: 20px;
+  background-color: white;
+  box-shadow: 0px 0px 25px rgba(133, 93, 93, 0.5);
+  // background-image: url("../assets/canvas/addPop.png");
+  // background-repeat: no-repeat;
+  // background-size: cover;
   z-index: 10;
-  font-family: "思源黑体";
 }
 
 @media screen and (max-width: 1700px) {
   .addPop {
-    width: 984.8px;
-    height: 234.4px;
+    width: 1100px;
+    height: 300px;
   }
 
   .addPop_text_block input {
@@ -190,8 +204,8 @@
 
 @media screen and (max-width: 1500px) {
   .addPop {
-    width: 861.7px;
-    height: 205.1px;
+    width: 1000px;
+    height: 270px;
   }
 
   .addPop_text_block input {
@@ -221,11 +235,11 @@
 }
 
 .addPop_textBtn:hover .addPop_addText {
-  background-image: url("../assets/canvas/addText_active.png");
+  background-image: url('../assets/canvas/addText_active.png');
 }
 
 .addPop_imageBtn:hover .addPop_addImage {
-  background-image: url("../assets/canvas/addImage_active.png");
+  background-image: url('../assets/canvas/addImage_active.png');
 }
 
 .addPop_addBtn {
@@ -238,20 +252,20 @@
 }
 
 .addPop_addText {
-  background-image: url("../assets/canvas/addText.png");
+  background-image: url('../assets/canvas/addText.png');
 }
 
 .addPop_addImage {
-  background-image: url("../assets/canvas/addImage.png");
+  background-image: url('../assets/canvas/addImage.png');
 }
 
 .addPop_close {
   position: absolute;
   width: 62px;
   height: 62px;
-  right: -13px;
-  top: -13px;
-  background-image: url("../assets/canvas/addPop_close.png");
+  right: -20px;
+  top: -20px;
+  background-image: url('../assets/canvas/addPop_close.png');
   background-repeat: no-repeat;
   background-size: cover;
   cursor: pointer;
@@ -259,7 +273,7 @@
 }
 
 .addPop_close:hover {
-  background-image: url("../assets/canvas/addPop_close_active.png");
+  background-image: url('../assets/canvas/addPop_close_active.png');
 }
 
 .fade-enter-active,
@@ -286,11 +300,11 @@
 }
 </style>
 <script type="text/javascript">
-import { mapState, mapActions, mapGetters } from "vuex";
-import bus from "@/eventBus.js";
-import axios from "axios";
+import { mapState, mapActions, mapGetters } from 'vuex'
+import bus from '@/eventBus.js'
+import axios from 'axios'
 export default {
-  name: "addPop",
+  name: 'addPop',
   props: {
     msg: String //例子
   },
@@ -300,20 +314,20 @@ export default {
       api: state => state.api
     }),
     key_entf: function() {
-      let entf = this.keyboard(13);
-      entf.press = () => {};
-      entf.release = () => {};
-      return entf;
+      let entf = this.keyboard(13)
+      entf.press = () => {}
+      entf.release = () => {}
+      return entf
     },
     uploadUrl: function() {
       // return `http://dev.cyrd.gdinsight.com/api/files/upload_file_once/author_id/${this.user_data.id}.html`
-      return `http://dev.cyrd.gdinsight.com/api/files/upload_file_once/author_id/1.html`;
+      return `${this.api.upload_file_once}${this.user_data.id}.html`
     }
   },
   data: function() {
     return {
       edit_mode: false,
-      textC: "",
+      textC: '',
       addBtn_show: true,
       text_block_show: false,
       image_block_show: false,
@@ -321,196 +335,206 @@ export default {
         list: []
         // list: [{ name: 'food.jpeg', src: "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1343015815,2335192405&fm=26&gp=0.jpg", url: "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1343015815,2335192405&fm=26&gp=0.jpg", id: 'qweqweq' }, { name: 'food2.jpeg', url: require('../assets/canvas/Lighthouse.jpg'), src: require('../assets/canvas/Lighthouse.jpg') }, { name: 'food2.jpeg', url: require('../assets/canvas/Lighthouse.jpg'), src: require('../assets/canvas/Lighthouse.jpg') }]
       },
-      dialogImageUrl: "",
+      dialogImageUrl: '',
       dialogVisible: false,
       disabled: false,
       image_change: false,
       mydata: {
         upload_file_once: {}
       }
-    };
+    }
   },
-  beforeDestroy:function(){
-    
-  },
+  beforeDestroy: function() {},
   created: function() {
-    const me = this;
-    bus.$off("text_edit_mode").$on("text_edit_mode", function(text) {
-      me.$set(me, "edit_mode", true);
-      me.$set(me, "textC", text);
-      me.$set(me, "addBtn_show", false);
-      me.$set(me, "text_block_show", true);
-    });
-    bus.$off("image_change").$on("image_change", function() {
-      me.$set(me, "edit_mode", true);
-      me.$set(me, "addBtn_show", false);
-      me.$set(me, "image_block_show", true);
-      me.$set(me, "image_change", true);
-    });
+    const me = this
+    bus.$off('text_edit_mode').$on('text_edit_mode', function(text) {
+      me.$set(me, 'edit_mode', true)
+      me.$set(me, 'textC', text)
+      me.$set(me, 'addBtn_show', false)
+      me.$set(me, 'text_block_show', true)
+    })
+    bus.$off('image_change').$on('image_change', function() {
+      me.$set(me, 'edit_mode', true)
+      me.$set(me, 'addBtn_show', false)
+      me.$set(me, 'image_block_show', true)
+      me.$set(me, 'image_change', true)
+    })
     me.key_entf.press = function() {
-      //快捷键监听
+      // 快捷键监听
       if (me.text_block_show) {
-        me.add_element("text");
+        me.add_element('text')
       }
-    };
-    //获取上传过的图片
-    me.getImg();
+    }
+    // 获取上传过的图片
+    me.getImg()
   },
   methods: {
     addChose: function(type) {
-      const me = this;
-      me.$set(me, "addBtn_show", false);
-      if (type == "text") {
-        me.$set(me, "text_block_show", true);
-      } else if (type == "image") {
-        me.$set(me, "image_block_show", true);
+      const me = this
+      me.$set(me, 'addBtn_show', false)
+      if (type == 'text') {
+        me.$set(me, 'text_block_show', true)
+      } else if (type == 'image') {
+        me.$set(me, 'image_block_show', true)
       }
     },
     getImg: function() {
-      const me = this;
-      let id = me.user_data.id;
+      const me = this
+      let id = me.user_data.id
       axios({
-        method: "post",
+        method: 'post',
         url: me.api.find_file,
         data: {
           id: id
         }
       })
         .then(function(response) {
-          if (response.data.code == "200") {
-            let imgA = response.data.data;
+          if (response.data.code == '200') {
+            let imgA = response.data.data
             for (let i = 0; i < imgA.length; i++) {
-              imgA[i].file_id = imgA[i].id;
-              imgA[
-                i
-              ].url = `${me.api.images}${imgA[i].path}`;
-              imgA[
-                i
-              ].src = `${me.api.images}${imgA[i].path}`;
-              imgA[i].name = "qwe";
+              imgA[i].file_id = imgA[i].id
+              imgA[i].url = `${me.api.images}${imgA[i].path}`
+              imgA[i].src = `${me.api.images}${imgA[i].path}`
+              imgA[i].name = 'qwe'
             }
-            me.$set(me.fileList, "list", imgA);
+            imgA.reverse()
+            me.$set(me.fileList, 'list', imgA)
           }
         })
-        .catch(function(error) {});
+        .catch(function() {})
     },
     closePop: function() {
-      const me = this;
-      me.reset();
-      bus.$emit("addPopShow", false);
+      const me = this
+      me.reset()
+      bus.$emit('addPopShow', false)
     },
     back: function() {
-      const me = this;
-      me.$set(me, "image_block_show", false);
-      me.$set(me, "text_block_show", false);
-      me.$set(me, "addBtn_show", true);
-      me.$set(me, "textC", "");
+      const me = this
+      me.$set(me, 'image_block_show', false)
+      me.$set(me, 'text_block_show', false)
+      me.$set(me, 'addBtn_show', true)
+      me.$set(me, 'textC', '')
     },
     add_element: function(type) {
-      const me = this;
-      if (me.textC !== "") {
-        if (type == "text" && !me.edit_mode) {
-          let id = `text_${new Date().valueOf()}`;
+      const me = this
+      if (me.textC !== '') {
+        if (type == 'text' && !me.edit_mode) {
+          let id = `text_${new Date().valueOf()}`
           let data = {
             id: id,
-            src: "",
+            src: '',
             text: me.textC,
-            m_comp_name: "product"
-          };
-          bus.$emit("add_element_func", data);
+            m_comp_name: 'product'
+          }
+          bus.$emit('add_element_func', data)
         } else if (me.edit_mode) {
-          //向canvas.vue发送通知
-          bus.$emit("change_text", me.textC);
+          // 向canvas.vue发送通知
+          bus.$emit('change_text', me.textC)
         }
-        me.reset();
-        me.closePop();
-        me.textC = "";
+        me.reset()
+        me.closePop()
+        me.textC = ''
       }
     },
     add_element_image: function(file) {
-      const me = this;
+      const me = this
       if (me.image_change) {
         //替换图片
         let data = {
           file_id: file.id,
           src: file.src
-        };
-
-        bus.$emit("change_in_move_image", data);
+        }
+        bus.$emit('change_in_move_image', data)
       } else {
         //新增图片
-        let time = new Date().getTime();
+        let time = new Date().getTime()
         let data = {
           file_id: file.id,
           id: `${file.id}${time}`,
           src: file.src,
-          text: "",
-          m_comp_name: "product"
-        };
-        console.log(data.src);
-        bus.$emit("add_element_func", data);
+          text: '',
+          m_comp_name: 'product'
+        }
+        console.log(data.src)
+        bus.$emit('add_element_func', data)
       }
-      me.reset();
-      me.closePop();
-      me.textC = "";
+      me.reset()
+      me.closePop()
+      me.textC = ''
     },
     handleRemove: function(file) {
-      const me = this;
-      let u_id = file.uid;
-      let list = me.fileList.list.filter(item => item.uid != u_id);
-      me.$set(me.fileList, "list", list);
+      const me = this
+      let u_id = file.uid
+      let list = me.fileList.list.filter(item => item.uid != u_id)
+      me.$set(me.fileList, 'list', list)
     },
     handlePictureCardPreview: function(file) {
-      this.dialogImageUrl = file.url;
-      this.dialogVisible = true;
+      this.dialogImageUrl = file.url
+      this.dialogVisible = true
     },
     on_success: function(response, file, fileList) {
-      file.src = "http://dev.cyrd.gdinsight.com" + response.data.savepath;
-      file.id = response.data.file_id;
-      this.$set(this.fileList, "list", fileList);
+      const me = this
+      let item = {
+        size: null,
+        arc: null,
+        status: 1,
+        name: 'userup'
+      }
+      Object.assign(
+        item,
+        { src: me.api.images + response.data.savepath },
+        { url: me.api.images + response.data.savepath },
+        { file_id: parseInt(response.data.file_id) },
+        { id: parseInt(response.data.file_id) }
+      )
+      // item.src = this.api.images + response.data.savepath
+      // item.url = this.api.images + response.data.savepath
+      // item.file_id = parseInt(response.data.file_id)
+
+      this.$set(this.fileList, 'list', [item, ...this.fileList.list])
     },
     before_upload: function(file) {
-      this.$set(this.mydata, "upload_file_once", file);
+      this.$set(this.mydata, 'upload_file_once', file)
     },
     reset: function() {
-      const me = this;
-      me.$set(me, "edit_mode", false);
-      me.$set(me, "textC", "");
-      me.$set(me, "text_block_show", false);
-      me.$set(me, "image_block_show", false);
-      me.$set(me, "addBtn_show", true);
-      me.$set(me, "image_change", false);
+      const me = this
+      me.$set(me, 'edit_mode', false)
+      me.$set(me, 'textC', '')
+      me.$set(me, 'text_block_show', false)
+      me.$set(me, 'image_block_show', false)
+      me.$set(me, 'addBtn_show', true)
+      me.$set(me, 'image_change', false)
     },
     keyboard: function(keyCode) {
-      let key = {};
-      key.code = keyCode;
-      key.isDown = false;
-      key.isUp = true;
-      key.press = undefined;
-      key.release = undefined;
+      let key = {}
+      key.code = keyCode
+      key.isDown = false
+      key.isUp = true
+      key.press = undefined
+      key.release = undefined
       //The `downHandler`
       key.downHandler = event => {
         if (event.keyCode === key.code) {
-          if (key.isUp && key.press) key.press();
-          key.isDown = true;
-          key.isUp = false;
-          event.preventDefault();
+          if (key.isUp && key.press) key.press()
+          key.isDown = true
+          key.isUp = false
+          event.preventDefault()
         }
-      };
+      }
       //The `upHandler`
       key.upHandler = event => {
         if (event.keyCode === key.code) {
-          if (key.isDown && key.release) key.release();
-          key.isDown = false;
-          key.isUp = true;
-          event.preventDefault();
+          if (key.isDown && key.release) key.release()
+          key.isDown = false
+          key.isUp = true
+          event.preventDefault()
         }
-      };
+      }
       //Attach event listeners
-      window.addEventListener("keydown", key.downHandler.bind(key), false);
-      window.addEventListener("keyup", key.upHandler.bind(key), false);
-      return key;
+      window.addEventListener('keydown', key.downHandler.bind(key), false)
+      window.addEventListener('keyup', key.upHandler.bind(key), false)
+      return key
     }
   }
-};
+}
 </script>

@@ -59,7 +59,7 @@ export default {
 
   // ***************************************************home(canvas)页面以及其子组件
   // 获取推荐文案接口
-  get_word: '/word/get_word',
+  get_word: '/Word/find_word_self',
 
   // 获取css文件以及woff字体文件的地址前缀
   file_path: 'http://font.idealead.hbindex.com',
@@ -77,6 +77,9 @@ export default {
   template: '/template/find_template_by_id/template_id/',
 
   // 获取弧形装饰参数
-  arc_find_file: '/Files/find_file_one'
+  arc_find_file: '/Files/find_file_one',
+
+  // 保存文案规则
+  add_word_rule: '/Word/add_word_rule'
   // ***************************************************home(canvas)页面以及其子组件
 }

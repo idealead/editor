@@ -41,13 +41,13 @@
   position: absolute;
   top: 0;
   padding-top: 100px;
-  overflow-y: auto
+  overflow-y: auto;
 }
 
 .structure_block {
   width: 100%;
   text-align: center;
-  margin-top: 30px
+  margin-top: 30px;
 }
 
 .select_div {
@@ -74,7 +74,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  background-color: rgba(0, 0, 0, .5);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .layoutBlock {
@@ -100,7 +100,7 @@
 .createNewBtn {
   position: absolute;
   left: 20%;
-  bottom: 0
+  bottom: 0;
 }
 
 .cancelBtn {
@@ -130,9 +130,9 @@
   display: inline-block;
 }
 
-.el-tag+.el-tag {
+.el-tag + .el-tag {
   margin-left: 10px;
-  margin-bottom: 10px
+  margin-bottom: 10px;
 }
 
 .button-new-tag {
@@ -147,54 +147,52 @@
   width: 90px;
   margin-left: 10px;
   vertical-align: bottom;
-  margin-bottom: 10px
+  margin-bottom: 10px;
 }
-
 </style>
 <script>
 // @ is an alias to /src
-import { mapState, mapActions, mapGetters } from 'vuex'
-import axios from 'axios'
-import bus from "@/eventBus.js"
+import { mapState, mapActions, mapGetters } from "vuex";
+import axios from "axios";
+import bus from "@/eventBus.js";
 export default {
-  name: 'structure',
+  name: "structure",
   props: {
     structureD: {
       type: Array,
-      default: function(){
-        return []
+      default: function() {
+        return [];
       }
     }
   },
   data: function() {
     return {
       setNew: false,
-      structureName: '',
-      dynamicTags: ['主图', '背景', '装饰1'],
+      structureName: "",
+      dynamicTags: ["主图", "背景", "装饰1"],
       inputVisible: false,
-      inputValue: ''
-    }
+      inputValue: ""
+    };
   },
   computed: {
     ...mapState({
       user_type: state => state.user_type,
-      api: state =>state.api
+      api: state => state.api
     }),
     structureData: function() {
-      return this.structureD
+      return this.structureD;
     },
-    backGroundUrl: function(me, template_info) {
-
-    },
+    backGroundUrl: function(me, template_info) {},
     backgroundImage: function() {
       return function(template_info) {
-        if (template_info != '') {
-          return { backgroundImage: `url(${me.api.images}${template_info[0].preview_path})` }
+        if (template_info != "") {
+          return {
+            backgroundImage: `url(${me.api.images}${template_info[0].preview_path})`
+          };
         } else {
-          return ''
+          return ""
         }
       }
-
     }
   },
   created: function() {
@@ -202,26 +200,25 @@ export default {
   },
   mounted: function() {
     const me = this;
-
   },
   methods: {
     selectDiv: function(self) {
       const me = this;
       let structure_id = self.target.attributes.toid.value;
       me.$store.dispatch("changeStructureIdFunc", structure_id);
-      me.$store.dispatch("changeNewStructureIdFunc", '');
-      me.$router.push({ path: '/canvas?userType=designer' })
+      me.$store.dispatch("changeNewStructureIdFunc", "");
+      me.$router.push({ path: "/canvas?userType=designer" });
     },
     newStructure: function() {
       const me = this;
-      me.showAddFunc(true)
+      me.showAddFunc(true);
     },
     showAddFunc: function(add) {
       const me = this;
       if (add) {
-        me.$set(me, 'setNew', true)
+        me.$set(me, "setNew", true);
       } else {
-        me.$set(me, 'setNew', false)
+        me.$set(me, "setNew", false);
       }
     },
     handleClose(tag) {
@@ -241,50 +238,58 @@ export default {
         this.dynamicTags.push(inputValue);
       }
       this.inputVisible = false;
-      this.inputValue = '';
+      this.inputValue = "";
     },
     buildModel() {
       const me = this;
       let buildData = {};
-      let framework_name = me.structureName
-      let rule = []
+      let framework_name = me.structureName;
+      let rule = [];
       for (let i = 0; i < me.dynamicTags.length; i++) {
         let ruleD = {};
         ruleD.position = i;
         ruleD.position_name = me.dynamicTags[i];
-        rule.push(ruleD)
+        rule.push(ruleD);
       }
-      buildData.framework_name = framework_name
-      buildData.rule = rule
+      buildData.framework_name = framework_name;
+      buildData.rule = rule;
       axios({
-        method: 'post',
+        method: "post",
         url: me.api.add_framework_info,
         data: buildData
-      }).then(function(response) {
-        if (response.data.code == '200') {
-          //设置架构名称
-          me.$store.dispatch("ChangeRenderFunc", { key: 'mould_name', value: framework_name });
-          me.$message({
-            message: '架构创建成功，将跳转至模板编辑页面',
-            type: 'success'
-          });
-          setTimeout(() => {
-            //设置骨架id和替换位置标签
-            me.$store.dispatch("changeNewStructureIdFunc", parseInt(response.data.id));
-            me.$store.dispatch("ChangeRenderFunc", { key: 'structure_position', value: rule });
-            me.showAddFunc(false)
-            //数据初始化
-            me.$set(me, 'structureName', '')
-            me.$set(me, 'dynamicTags', ['主图', '背景', '装饰1'])
-            //跳转至编辑页面，编辑骨架专属模板
-            me.$router.push({ path: '/canvas?userType=designer' })
-          }, 1000)
-        }
-      }).catch(function(error) {
-
-      });
+      })
+        .then(function(response) {
+          if (response.data.code == "200") {
+            //设置架构名称
+            me.$store.dispatch("ChangeRenderFunc", {
+              key: "mould_name",
+              value: framework_name
+            });
+            me.$message({
+              message: "架构创建成功，将跳转至模板编辑页面",
+              type: "success"
+            });
+            setTimeout(() => {
+              //设置骨架id和替换位置标签
+              me.$store.dispatch(
+                "changeNewStructureIdFunc",
+                parseInt(response.data.id)
+              );
+              me.$store.dispatch("ChangeRenderFunc", {
+                key: "structure_position",
+                value: rule
+              });
+              me.showAddFunc(false);
+              //数据初始化
+              me.$set(me, "structureName", "");
+              me.$set(me, "dynamicTags", ["主图", "背景", "装饰1"]);
+              //跳转至编辑页面，编辑骨架专属模板
+              me.$router.push({ path: "/canvas?userType=designer" });
+            }, 1000);
+          }
+        })
+        .catch(function(error) {});
     }
   }
-}
-
+};
 </script>

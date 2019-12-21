@@ -1,4 +1,4 @@
-import computed_func from '@/homeComponents/pixiFunc/computational_function.js'
+import { computed_func } from '@/homeComponents/pixiFunc/computational_function.js'
 export default {
   name: 'element_func',
   onRightC: function (event) {
@@ -82,7 +82,7 @@ export default {
     }
   },
   normalStart: function (that, data) {
-    const me = this
+    let me = this
     me.clearTemporary()
     me.in_move = that
     if (!that.lock) {
@@ -94,15 +94,17 @@ export default {
       that.deviationY = newPosition.y - that.parent.y
       me.containerLine(that, false)
       me.showEdit(me.in_move.type)
+      newPosition = null
     } else {
       // 删除之前的边框按钮图层，增加此对象的边框按钮
       me.containerLine(that, false, false, '#D62B25', true)
       me.$set(me.edit_bar.btn, 'show', false)
     }
-
+    me = null
   },
-  onDragStart: function (sprite, event) {
-    const me = this
+  onDragStart: function (event) {
+    let me = this
+    let sprite = event.currentTarget
     // 点击时判断是否是按着ctrl选择多个,且点击的不是带组合的元素
     if (me.key_ctrlf.isDown && !me.key_ctrlf.isUp && !sprite.lock && !sprite.structure) {
       // ctrl选择第二个元素或多个元素
@@ -198,9 +200,12 @@ export default {
         me.normalStart(sprite, event.data)
       }
     }
+    me = null
+    sprite = null
   },
-  onDragMove: function (obj, event) {
-    const me = this
+  onDragMove: function (event) {
+    let me = this
+    let obj = event.currentTarget
     if (me.ctrl_arr && me.ctrl_arr.length > 0) {
       for (let i = 0; i < me.ctrl_arr.length; i++) {
         if (me.ctrl_arr[i].dragging) {
@@ -244,7 +249,7 @@ export default {
       }
     } else {
       if (obj.dragging && !obj.structure) {
-        // structure为了防止骨架的标题移动
+        // structure为了防止骨架的标题移动（用不到了）
         let newPosition = obj.data.getLocalPosition(me.mainStage_container)
         obj.parent.position.set(newPosition.x - obj.deviationX, newPosition.y - obj.deviationY)
         // 移动icon线框位置
@@ -254,29 +259,30 @@ export default {
         newPosition = null
       }
     }
+    // me = null
   },
-  onDragEnd: function (sprite, event) {
-    const me = this
-    var that = sprite
+  onDragEnd: function (event) {
+    let me = this
+    let sprite = event.currentTarget
     // 拖动结束
-    that.dragging = false
-    that.data = null
+    sprite.dragging = false
+    sprite.data = null
     for (let i = 0; i < me.ctrl_arr.length; i++) {
       me.ctrl_arr[i].dragging = false
       me.ctrl_arr[i].data = null
     }
     // 组合点击的逻辑
-    if (!that.lock) {
-      if (me.click_ass_id !== '' && me.click_ass_id == that.association_name && that.type !== 'btn' && that.type !== 'association_gap_notT') {
-        me.in_move = that
-        me.aSingleClickBorder(that.association_name)
+    if (!sprite.lock) {
+      if (me.click_ass_id !== '' && me.click_ass_id == sprite.association_name && sprite.type !== 'btn' && sprite.type !== 'association_gap_notT') {
+        me.in_move = sprite
+        me.aSingleClickBorder(sprite.association_name)
       }
-      if (me.click_ass_id == '' && that.association_name !== '') {
-        me.click_ass_id = that.association_name
+      if (me.click_ass_id == '' && sprite.association_name !== '') {
+        me.click_ass_id = sprite.association_name
       }
       // 如果是组合元素拖动结束，渲染组合边框
-      if (that.association_name !== '' && that.type !== 'association_gap_notT' && me.in_move) {
-        me.aSingleClickBorder(that.association_name)
+      if (sprite.association_name !== '' && sprite.type !== 'association_gap_notT' && me.in_move) {
+        me.aSingleClickBorder(sprite.association_name)
       }
     }
     if (me.temporary_rect && me.temporary_rect.dragging) {
@@ -290,9 +296,11 @@ export default {
     }
     // //存储进活动日志
     me.pushActiveLog()
+    me = null
+    sprite = null
   },
   onScaleStart: function (event) {
-    const me = this
+    let me = this
     event.target.data = event.data
     me.in_move.dragging = !1
     me.can_scale = 1
@@ -311,9 +319,11 @@ export default {
       let num = me.in_move.width / me.in_move.style.fontSize
       me.in_move.text_num = num
     }
+    me = null
   },
   onScaleMove: function (btn, event) {
-    const me = this
+    let me = this
+    console.log('缩放')
     if (me.can_scale) {
       var e = event.data.getLocalPosition(me.mainStage_container)
       // 目前拉伸的到原点连线的长度
@@ -338,9 +348,10 @@ export default {
       e = null
       n = null
     }
+    // me = null
   },
   scaleAll: function (n, text_num = 0) {
-    const me = this
+    let me = this
     // let dw = 2 * d_value
     if (n <= 0) {
       return
@@ -356,7 +367,6 @@ export default {
       scale = 0.1
     }
     if (me.in_move.type == 'text') {
-
       let fs = me.in_move.ofonts * scale
       me.in_move.style.wordWrapWidth = (fs + me.in_move.style.letterSpacing) * text_num
       me.in_move.style.fontSize = Math.floor(fs)
@@ -377,9 +387,10 @@ export default {
     scale = null
     x2 = null
     x1 = null
+    me = null
   },
   onScaleEnd: function () {
-    const me = this
+    let me = this
     me.can_scale = 0
     // //改变组合空白矩形,在元素拖动方法中已经修改，放大后改change为假
     if (me.in_move.association_name !== '') {
@@ -388,7 +399,6 @@ export default {
           me.$nextTick(() => {
             me.aSingleClickBorder(me.ctrl_arr[i].association_name)
           })
-
         }
       }
     }
@@ -402,9 +412,10 @@ export default {
     }
     // //存储进活动日志
     me.pushActiveLog()
+    // me = this
   },
   onRotateStart: function () {
-    const me = this
+    let me = this
     me.in_move.dragging = !1
     me.can_rotate = 1
     if (me.in_move.association_name !== '') {
@@ -417,9 +428,10 @@ export default {
         }
       }
     }
+    me = this
   },
   onRotateMove: function (event) {
-    const me = this
+    let me = this
     if (me.can_rotate) {
       let e = event.data.getLocalPosition(me.mainStage_container)
       // 计算向量夹角
@@ -438,9 +450,10 @@ export default {
       me.rotateOBj(Math.acos(cos), e.x)
       me.$set(me, 'after_rotate', true)
     }
+    me = null
   },
   rotateOBj: function (num, x) {
-    const me = this
+    let me = this
     if (x - me.in_move.parent.position.x >= 0) {
       me.in_move.rotation = num
       me.outLine_container.getChildByName(me.in_move.name).rotation = num
@@ -449,9 +462,10 @@ export default {
       me.outLine_container.getChildByName(me.in_move.name).rotation = -num
     }
     me.forChangeAssociation(me.in_move.association_name)
+    me = null
   },
   onRotateEnd: function () {
-    const me = this
+    let me = this
     me.in_move.rotation_num = me.in_move.rotation
     me.can_rotate = 0
     // //改变组合空白矩形,在元素拖动方法中已经修改，放大后改change为假
@@ -464,16 +478,18 @@ export default {
     }
     // //存储进活动日志
     me.pushActiveLog()
+    me = null
   },
   onStretchStart: function (event) {
-    const me = this
+    let me = this
     me.in_move.dragging = false
     me.can_scale = 0
     me.can_rotate = 0
     me.can_stretch = 1
+    me = null
   },
   onStretchMove: function (event) {
-    const me = this
+    let me = this
     if (me.can_stretch) {
       let e = event.data.getLocalPosition(me.mainStage_container)
       let centerx = me.in_move.parent.position.x
@@ -485,9 +501,10 @@ export default {
       }
       me.$set(me, 'after_stretch', true)
     }
+    me = null
   },
   onStretchEnd: function () {
-    const me = this
+    let me = this
     me.can_stretch = 0
     me.in_move.originalw = me.in_move.width
     me.in_move.originalh = me.in_move.height
@@ -498,14 +515,16 @@ export default {
     }
     // //存储进活动日志
     me.pushActiveLog()
+    me = null
   },
   onTemporaryStart: function (event) {
     // 计算临时组合的偏差值用于移动,布尔值表示移动临时组合矩形，false表示移动组合矩形(包含在ctrl_arr里)
-    const me = this
+    let me = this
     me.ctrlDeviation(event.data, true)
+    me = null
   },
   onTemporaryEnd: function () {
-    const me = this
+    let me = this
     for (let i = 0; i < me.ctrl_arr.length; i++) {
       me.ctrl_arr[i].dragging = false
       me.ctrl_arr[i].data = null
@@ -539,9 +558,10 @@ export default {
     // } else if (!me.in_move) {
     //   me.click_obj_name = '';
     // }
+    // me = null
   },
   onTScaleStart: function (event) {
-    const me = this
+    let me = this
     event.target.data = event.data
     me.can_scale = 1
     let ctrl_arr_pivot = []
@@ -573,9 +593,10 @@ export default {
     event.target.temporary_rectY = me.temporary_rect.y
     event.target.ctrl_arr_pivot = ctrl_arr_pivot
     me.temporary_rect.oScale = me.temporary_rect.scale.x
+    me = null
   },
   onTScaleMove: function (btn, event) {
-    const me = this
+    let me = this
     if (me.can_scale) {
       var e = event.data.getLocalPosition(me.mainStage_container)
       // 目前拉伸的到原点连线的长度
@@ -587,9 +608,10 @@ export default {
       me.tScaleAll(n, btn)
       me.$set(me, 'after_scale', true)
     }
+    me = null
   },
   tScaleAll: function (n, that, present_w) {
-    const me = this
+    let me = this
     if (n <= 0) {
       return
     }
@@ -641,9 +663,11 @@ export default {
         me.ctrl_arr[i].parent.y = that.pivotY - (that.pivotY - that.ctrl_arr_pivot[i].y) * scale
       }
     }
+    that = null
+    me = null
   },
   onTScaleEnd: function () {
-    const me = this
+    let me = this
     me.can_scale = 0
     me.temporary_rect.originalw = me.temporary_rect.width
     me.temporary_rect.originalh = me.temporary_rect.height
@@ -661,9 +685,10 @@ export default {
     }
     // 存储进活动日志
     me.pushActiveLog()
+    // me = null
   },
   onTRotateStart: function (event = null) {
-    const me = this
+    let me = this
     me.temporary_rect.dragging = false
     me.temporary_rect.beforeRX = me.temporary_rect.x
     me.temporary_rect.beforeRY = me.temporary_rect.y
@@ -692,9 +717,10 @@ export default {
     me.temporary_rect.x = me.temporary_rect.centerX
     me.temporary_rect.y = me.temporary_rect.centerY
     me.can_rotate = 1
+    me = null
   },
   onTRotateMove: function (event) {
-    const me = this
+    let me = this
     if (me.can_rotate) {
       let e = event.data.getLocalPosition(me.mainStage_container)
       // 计算向量夹角
@@ -713,9 +739,10 @@ export default {
       me.tRotateOBj(Math.acos(cos), e.x)
       me.$set(me, 'after_rotate', true)
     }
+    me = null
   },
   tRotateOBj: function (num, x) {
-    const me = this
+    let me = this
     if (x - (me.temporary_rect.centerX) >= 0) {
       for (let i = 0; i < me.ctrl_arr.length; i++) {
         if (me.ctrl_arr[i].type == 'association_gap_notT') {
@@ -742,9 +769,10 @@ export default {
       // outLine_container.getChildByName(temporary_rect.name).rotation = -num;
     }
     // outLine_container.getChildByName(temporary_rect.name).getChildByName('line').alpha=0;
+    me = null
   },
   onTRotateEnd: function () {
-    const me = this
+    let me = this
     let temporary_rect = me.temporary_rect
     let ctrl_arr = me.ctrl_arr
     temporary_rect.pivot.set(0)
@@ -786,11 +814,12 @@ export default {
     }, 130)
     // 存储进活动日志
     me.pushActiveLog()
+    // me = null
   },
   onAssociationStart: function (event, right, lock) {
     const me = this
     if (me.key_ctrlf.isDown && !me.key_ctrlf.isUp) {
-      me.onDragStart(event.currentTarget, event)
+      me.onDragStart(event)
     } else {
       me.clearTemporary()
       me.addACtrlarr(event.target.association_name)
@@ -1054,7 +1083,7 @@ export default {
     }
   },
   updateSvgScale: function (obj) {
-    const me = this
+    let me = this
     let src = obj.texture.baseTexture.resource.svg
     let res = new me.mypixi.resources.SVGResource(src, { scale: obj.scale.x * obj.texture.baseTexture.resource.scale, autoLoad: true })
     res.load().then(function () {
@@ -1063,6 +1092,7 @@ export default {
       obj.texture.baseTexture.update()
       obj.scale.set(1)
     })
+    me = null
   },
   scaleTextEnd: function (text) {
     // const me = this
@@ -1074,7 +1104,7 @@ export default {
     // me.pushActiveLog()
   },
   ctrlDeviation: function (data, t_r, tem_move = true) {
-    const me = this
+    let me = this
     me.in_move = null
     for (let i = 0; i < me.ctrl_arr.length; i++) {
       me.ctrl_arr[i].data = data
@@ -1099,18 +1129,20 @@ export default {
       me.temporary_rect.deviationY = newPosition1.y - me.temporary_rect.y
       me.showEdit('temporary')
     }
+    me = null
   },
   moveIcon: function (obj) {
-    const me = this
+    let me = this
     me.outLine_container.getChildByName(obj.name).getChildByName('scale-btn').position.set(obj.width / 2, -obj.height / 2)
     me.outLine_container.getChildByName(obj.name).getChildByName('rotate-btn').position.set(0, (-obj.height / 2) - me.r_btn_h)
     if (obj.type == 'text') {
       me.outLine_container.getChildByName(me.in_move.name).getChildByName('stretch-btn').position.set(me.in_move.width / 2, 0)
     }
+    me = null
   },
   aSingleClick: function (that, data) {
     // 单机组合中的元素
-    const me = this
+    let me = this
     me.in_move = that
     if (!me.in_move.lock) {
       that.data = data
@@ -1138,9 +1170,10 @@ export default {
         me.showEdit('text_in')
       }
     }
+    me = null
   },
   aSingleClickBorder: function (ass_name) {
-    const me = this
+    let me = this
     me.$nextTick(() => {
       me.removeLine()
       for (let i = 0; i < me.ctrl_arr.length; i++) {
@@ -1153,6 +1186,7 @@ export default {
           me.createBorder(me.ctrl_arr[i], false, false)
         } else { }
       }
+      me = null
     })
   }
 }

@@ -150,7 +150,7 @@ export default {
     }
   },
   created: function() {
-    const me = this;
+    const me = this
     me.application = new PIXI.Application({
       backgroundColor: 0xf5f5f5,
       width: 2500,

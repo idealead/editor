@@ -8,6 +8,9 @@ import ElementUI from 'element-ui'
 import axios from 'axios'
 // import _ from 'lodash'
 import 'element-ui/lib/theme-chalk/index.css'
+import VueLazyload from 'vue-lazyload'
+
+Vue.use(VueLazyload)
 Vue.use(ElementUI)
 Vue.config.productionTip = false
 

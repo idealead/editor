@@ -20,12 +20,9 @@ export default {
           data[i].children[0].ass_children[k].type == 'image' ||
           data[i].children[0].ass_children[k].type == 'svg'
         ) {
-          // 判断是否是有替换logo和主图
           let src_from = data[i].children[0].ass_children[k].src
-          // if (data[i].children[0].ass_children[k].role == 'logo' && me.changeLogo !== '') src_from = me.changeLogo
-          // if (data[i].children[0].ass_children[k].role == 'main' && me.changeMain !== '') src_from = me.changeMain
-          if (data[i].children[0].ass_children[k].role == 'logo') { me.$set(me.tempRoleMsg, 'logo', (me.tempRoleMsg['logo'] += 1)) }
-          if (data[i].children[0].ass_children[k].role == 'main') { me.$set(me.tempRoleMsg, 'main', (me.tempRoleMsg['main'] += 1)) }
+          if (data[i].children[0].ass_children[k].role == 'logo' && firstLoad) { me.$set(me.tempRoleMsg, 'logo', (me.tempRoleMsg['logo'] += 1)) }
+          if (data[i].children[0].ass_children[k].role == 'main' && firstLoad) { me.$set(me.tempRoleMsg, 'main', (me.tempRoleMsg['main'] += 1)) }
           if (data[i].children[0].ass_children[k].role == 'arc_titleImg') {
             // 获取弧形文字装饰的参数
             // console.log(`弧形装饰${data[i].children[0].ass_children[k]}`)
@@ -57,7 +54,7 @@ export default {
         }
       }
     }
-    if (Object.keys(font_family).length === 0) {
+    if (Object.keys(font_family).length === 0 || !firstLoad) {
       img_src = Array.from(new Set(img_src))
       me.p_app.loader
         .add(img_src, {
@@ -66,42 +63,26 @@ export default {
         .load(function () {
           me.afterLoad(data, firstLoad)
         })
-      return false
-    }
-    // 字体加载
-    me.getAllfontFamily(font_family)
-      .then(function (res) {
-        // 加载css文件，从而自动加载woff文件
-        for (let i = 0; i < res.length; i++) {
-          if (res[i].data.code != 1) continue
-          axios
-            .all(me.getCssWoff(res[i].data.path, res[i].data.woffPath))
-            .then(function (response) {
-              // 下方的linkcss，以及字体的加载读缓存就好了。
-              me.dynamicLoadCss(me.api.file_path + res[i].data.path)
-              if (i + 1 >= res.length) {
-                setTimeout(() => {
-                  // 字体加载完毕回调
-                  img_src = Array.from(new Set(img_src))
-                  me.p_app.loader
-                    .add(img_src, {
-                      crossOrigin: 'Anonymous'
-                    })
-                    .load(function () {
-                      me.afterLoad(data, firstLoad)
-                    })
-                }, 50)
-              }
+    } else {
+      me.getfontFamilyBack(font_family).then(() => {
+        setTimeout(() => {
+          // 字体加载完毕回调
+          img_src = Array.from(new Set(img_src))
+          me.p_app.loader
+            .add(img_src, {
+              crossOrigin: 'Anonymous'
             })
-            .catch(res => { })
-        }
+            .load(function () {
+              me.afterLoad(data, firstLoad)
+            })
+        }, 300)
       })
-      .catch(function () { })
+    }
   },
   fontPost: function (data) {
     const me = this
     let postD = {
-      id: me.user_data.id,
+      user_id: me.user_data.id,
       font_name: data.font_name,
       text: data.text
     }
@@ -116,12 +97,14 @@ export default {
     const me = this
     let allArr = []
     for (let key in font_family) {
-      allArr.push(
-        me.fontPost({
-          font_name: `${key}`,
-          text: font_family[key]
-        })
-      )
+      if (key !== 'st') {
+        allArr.push(
+          me.fontPost({
+            font_name: `${key}`,
+            text: font_family[key]
+          })
+        )
+      }
     }
     return axios.all(allArr)
   },
@@ -135,15 +118,6 @@ export default {
           data[i].children[0].ass_children[k].type == 'image' ||
           data[i].children[0].ass_children[k].type == 'svg'
         ) {
-          // 有替换的logo和主图要替换id
-          // if (element_data.role == 'logo' && me.changeLogo !== '') {
-          //   element_data.src = me.changeLogo
-          //   element_data.file_id = me.logoFileId
-          // }
-          // if (element_data.role == 'main' && me.changeMain !== '') {
-          //   element_data.src = me.changeMain
-          //   element_data.file_id = me.mainFileId
-          // }
           // 增加图片父级，添加图片并设置图片
           me.newContainer(element_data, true)
         } else if (data[i].children[0].ass_children[k].type == 'text') {
@@ -182,7 +156,8 @@ export default {
       me.user_type == 'client'
     ) {
       let wordArr = me.arc_obj.arc_title.text.split('')
-      me.renderARC('arc_title', wordArr)
+      let textReplace = typeof (me.arc_obj.arc_title.textReplace) === 'number' ? me.arc_obj.arc_title.textReplace : null
+      me.renderARC('arc_title', wordArr, textReplace)
     }
     if (
       me.arc_obj.arc_subtitle &&
@@ -190,7 +165,8 @@ export default {
       me.user_type == 'client'
     ) {
       let wordArr = me.arc_obj.arc_subtitle.text.split('')
-      me.renderARC('arc_subtitle', wordArr)
+      let textReplace = typeof (me.arc_obj.arc_subtitle.textReplace) === 'number' ? me.arc_obj.arc_subtitle.textReplace : null
+      me.renderARC('arc_subtitle', wordArr, textReplace)
     }
     // 判断有没有弧形文字，渲染弧形文字********************************************************************************************************************************
     me.renderStage()
@@ -207,15 +183,15 @@ export default {
       }
     }
     let keys_arr = Object.keys(ass_arr_obj)
-    for (let l = 0; l < keys_arr.length; l++) {
-      let key = keys_arr[l]
-      me.ctrl_arr = ass_arr_obj[key]
-      me.createAssociation(key, ass_arr_obj[key][0].m_comp_name, true)
+    if (keys_arr.length > 0) {
+      for (let l = 0; l < keys_arr.length; l++) {
+        let key = keys_arr[l]
+        me.ctrl_arr = ass_arr_obj[key]
+        me.createAssociation(key, ass_arr_obj[key][0].m_comp_name, true)
+      }
+      me.renderStage()
     }
-    // 渲染
-    me.renderStage()
-    if (me.ctrl_arr) me.ctrl_arr.length = 0
-    me.updateLayer()
+    // 渲染组合矩形
     if (firstLoad) {
       console.log('渲染模板')
       // 存储进活动日志
@@ -225,14 +201,9 @@ export default {
       //     me.saveMould(me.mould_name, '', false)
       //   }
       // }, 20)
-      // setTimeout(() => {
-      //   // 当时是为了解决字体加载，才再次渲染？
-      //   if (me.reRender) {
-      //     me.$set(me, 'reRender', false)
-      //     me.renderTemplate()
-      //   }
-      // }, 1300)
     }
+    if (me.ctrl_arr) me.ctrl_arr.length = 0
+    me.updateLayer()
   },
   renderStage: function () {
     const me = this
@@ -246,7 +217,7 @@ export default {
       me.container_arr[i].cont.buttonMode = false
     }
     // 增加按钮线框容器
-    me.outLine(me.mainStage_container)
+    me.outLine()
     // me.p_app.renderer.render(me.p_app.stage);
     me.p_app.stage.interactive = true
     me.p_app.stage.hitArea = new me.mypixi.Rectangle(0, 0, me.window_w, me.window_h)
@@ -270,14 +241,14 @@ export default {
     rectangle.on('click', me.cancelInMove)
     mainStage.addChild(rectangle)
   },
-  outLine: function (mainStage) {
+  outLine: function () {
     const me = this
-    let container = new me.mypixi.Container()
-    container.type = 'outLine'
-    container.name = 'outLine'
-    mainStage.addChild(container)
-    me.outLine_container = container
-    container = null
+    me.outLine_container = new me.mypixi.Container()
+    me.outLine_container.type = 'outLine'
+    me.outLine_container.name = 'outLine'
+    me.mainStage_container.addChild(me.outLine_container)
+    // me.outLine_container = container
+    // container = null
   },
   maskInit: function () {
     const me = this // 遮罩
@@ -328,6 +299,11 @@ export default {
     rectangle3.y = (me.window_h - me.canvas_height) / 2
     rectangle3.interactive = false
     me.p_app.stage.addChild(rectangle3)
+    rectangle3 = null
+    rectangle2 = null
+    rectangle1 = null
+    rectangle = null
+    // new Array(4).fill(null)
   },
   ruler: function () {
     const me = this
@@ -469,6 +445,14 @@ export default {
     if (set_data.skew) {
       sprite.skew.set(set_data.skew.x, set_data.skew.y)
     }
+    // 色相功能
+    if (typeof (set_data.hueNumber) === 'number') {
+      sprite.hueNumber = set_data.hueNumber
+      set_data.hueNumber *= 360
+      let filter = new me.mypixi.filters.ColorMatrixFilter()
+      filter.hue(set_data.hueNumber, true)
+      sprite.filters = [filter]
+    }
     if (render_add) {
       sprite.rotation = set_data.rotation
       sprite.rotation_num = set_data.rotation
@@ -483,18 +467,10 @@ export default {
     // 监听事件
     sprite
       .on('rightdown', me.onRightC)
-      .on('mousedown', function (event) {
-        me.onDragStart(sprite, event)
-      })
-      .on('mousemove', function (event) {
-        me.onDragMove(sprite, event)
-      })
-      .on('mouseupoutside', function (event) {
-        me.onDragEnd(sprite, event)
-      })
-      .on('mouseup', function (event) {
-        me.onDragEnd(sprite, event)
-      })
+      .on('mousedown', me.onDragStart)
+      .on('mousemove', me.onDragMove)
+      .on('mouseupoutside', me.onDragEnd)
+      .on('mouseup', me.onDragEnd)
     //
     //
     me.container_arr[me.findCont(set_data.id)].cont.addChild(sprite)
@@ -507,6 +483,8 @@ export default {
       me.showEdit(me.in_move.type)
       // 图层面板监听
     }
+    // sprite.off()
+    // sprite = null
   },
   addText: function (set_data, render_add, saveLog) {
     const me = this
@@ -517,7 +495,7 @@ export default {
       lineHeight: 50,
       leading: 0,
       fontStyle: 'normal',
-      fontWeight: 'bold',
+      fontWeight: 'normal',
       fill: '#000',
       stroke: '#000',
       strokeThickness: 0,
@@ -554,6 +532,30 @@ export default {
     richText.m_comp_name = set_data.m_comp_name
     richText.lock = false
     richText.role = 'normal'
+    // 倾斜功能
+    if (set_data.skew) {
+      richText.skew.set(set_data.skew.x, set_data.skew.y)
+    }
+    // 文案替换功能
+    if (typeof (set_data.textReplace) === 'number') {
+      richText.textReplace = set_data.textReplace
+      richText.textPosition = me.textPositionArr[set_data.textReplace]
+    }
+    // 文本倒序
+    if (set_data.textReverse) {
+      // let rtext = set_data.text.split('')
+      // rtext = rtext.reverse()
+      // richText.text = rtext.join('')
+      richText.textReverse = true
+    }
+    // 色相功能
+    if (typeof (set_data.hueNumber) === 'number') {
+      richText.hueNumber = set_data.hueNumber
+      set_data.hueNumber *= 360
+      let filter = new me.mypixi.filters.ColorMatrixFilter()
+      filter.hue(set_data.hueNumber, true)
+      richText.filters = [filter]
+    }
     if (render_add) {
       richText.rotation = set_data.rotation
       richText.rotation_num = set_data.rotation
@@ -580,18 +582,10 @@ export default {
       // 监听事件
       richText
         .on('rightdown', me.onRightC)
-        .on('mousedown', function (event) {
-          me.onDragStart(richText, event)
-        })
-        .on('mousemove', function (event) {
-          me.onDragMove(richText, event)
-        })
-        .on('mouseupoutside', function (event) {
-          me.onDragEnd(richText, event)
-        })
-        .on('mouseup', function (event) {
-          me.onDragEnd(richText, event)
-        })
+        .on('mousedown', me.onDragStart)
+        .on('mousemove', me.onDragMove)
+        .on('mouseupoutside', me.onDragEnd)
+        .on('mouseup', me.onDragEnd)
       if (!render_add) {
         me.renderStage()
         me.in_move = richText
@@ -611,6 +605,10 @@ export default {
       }, 0)
       // me.$set(me.arc_obj, 'subtitle_obj', richText)
     }
+    set_data = null
+    style = null
+    richText.off()
+    richText = null
     //* ********
   },
   addContainer: function (
@@ -627,6 +625,7 @@ export default {
     container.rotation_num = 0
     // 按素材模块分类加入，找到此模块中元素的最高层级，在其后面加入
     me.containerArrAdd(set_data.m_comp_name, container, set_data.id)
+    container = null
   },
   newContainerText: function (set_data, render_add, saveLog) {
     const me = this
@@ -635,6 +634,7 @@ export default {
     set_data.id = `${set_data.id}`
     me.addContainer(set_data, set_data.position)
     me.addText(set_data, render_add, saveLog)
+    set_data = null
   },
   containerArrAdd: function (m_comp_name, container, id) {
     const me = this
@@ -693,7 +693,7 @@ export default {
     // cloneObj=null
   },
   createBorder: function (obj, t_a, a_r_btn, show_btn, color) {
-    const me = this
+    let me = this
     let dash = 15
     // dash是虚线空隙
     let sprite_Border = new me.mypixi.Container()
@@ -714,8 +714,15 @@ export default {
     line.moveTo(0, 0)
     line.type = 'line'
     line.name = 'line'
-
     for (let k = 0; k < Math.ceil(obj.height / dash); k++) {
+      if (k + 1 >= Math.ceil(obj.height / dash)) {
+        // line.moveTo(0, dash * k)
+        // line.lineTo(0, Math.ceil(obj.height))
+        // line.moveTo(Math.ceil(-obj.width), (k - 1 > 0 ? k - 1 : 0) * dash)
+        // line.lineTo(Math.ceil(-obj.width), Math.ceil(obj.height))
+        line.moveTo(0, 0)
+        break
+      }
       if (k % 2 == 0 || k == 0) {
         line.lineTo(0, dash * k)
         line.moveTo(Math.ceil(-obj.width), (k - 1 > 0 ? k - 1 : 0) * dash)
@@ -723,27 +730,21 @@ export default {
       } else {
         line.moveTo(0, dash * k)
       }
-      if (k + 1 >= Math.ceil(obj.height / dash)) {
-        line.moveTo(0, dash * k)
-        line.lineTo(0, Math.ceil(obj.height))
-        line.moveTo(Math.ceil(-obj.width), (k - 1 > 0 ? k - 1 : 0) * dash)
-        line.lineTo(Math.ceil(-obj.width), Math.ceil(obj.height))
-        line.moveTo(0, 0)
-      }
     }
     for (let k = 0; k < Math.ceil(obj.width / dash); k++) {
+      // if (k + 1 >= Math.ceil(obj.width / dash)) {
+      //   line.moveTo(-dash * k, 0)
+      //   line.lineTo(Math.ceil(-obj.width), 0)
+      //   line.moveTo((k - 1 > 0 ? k - 1 : 0) * -dash, Math.ceil(obj.height))
+      //   line.lineTo(Math.ceil(-obj.width), Math.ceil(obj.height))
+      //   break
+      // }
       if (k % 2 == 0 || k == 0) {
         line.lineTo(-k * dash, 0)
         line.moveTo((k - 1 > 0 ? k - 1 : 0) * -dash, Math.ceil(obj.height))
         line.lineTo(-k * dash, Math.ceil(obj.height))
       } else {
         line.moveTo(-k * dash, 0)
-      }
-      if (k + 1 >= Math.ceil(obj.width / dash)) {
-        line.moveTo(-dash * k, 0)
-        line.lineTo(Math.ceil(-obj.width), 0)
-        line.moveTo((k - 1 > 0 ? k - 1 : 0) * -dash, Math.ceil(obj.height))
-        line.lineTo(Math.ceil(-obj.width), Math.ceil(obj.height))
       }
     }
     line.x = Math.ceil(obj.width / 2)
@@ -773,7 +774,7 @@ export default {
       }
     }
     // 添加线框会导致内存泄露
-    // sprite_Border.addChild(line);
+    sprite_Border.addChild(line);
     me.outLine_container.addChild(sprite_Border)
 
     // 边框图层旋转角度和对象元素选择角度一致
@@ -781,6 +782,7 @@ export default {
     sprite_Border = null
     line = null
     obj = null
+    me = null
   },
   addScaleIcon: function (outLineC, obj, t_a, a_r_btn = false) {
     const me = this
@@ -824,7 +826,10 @@ export default {
     }
     outLineC.addChild(sprite)
     sprite.off()
-    sprite = null
+    if (!t_a && !a_r_btn) {
+      sprite = null
+    }
+    outLineC = null
   },
   addRotateIcon: function (outLineC, obj, t_a, a_r_btn = false) {
     const me = this
@@ -868,6 +873,7 @@ export default {
     outLineC.addChild(sprite)
     sprite.off()
     sprite = null
+    outLineC = null
   },
   addStretchIcon: function (outLineC, obj) {
     const me = this
@@ -890,6 +896,7 @@ export default {
     outLineC.addChild(sprite)
     sprite.off()
     sprite = null
+    outLineC = null
   },
   findMinAndAdd: function (data, a_length = 0, a_name = '') {
     const me = this
@@ -971,9 +978,7 @@ export default {
     rectangle
       .on('rightdown', me.onRightC)
       .on('mousedown', me.onTemporaryStart)
-      .on('mousemove', function (event) {
-        me.onDragMove(rectangle, event)
-      })
+      .on('mousemove', me.onDragMove)
       .on('mouseupoutside', me.onTemporaryEnd)
       .on('mouseup', me.onTemporaryEnd)
     container.addChild(rectangle)
@@ -984,7 +989,7 @@ export default {
     me.ctrlDeviation(data, true, tem_move)
   },
   removeLine: function (id = null) {
-    const me = this
+    let me = this
     if (id !== null) {
       let removeObj = me.outLine_container.getChildByName(id)
       removeObj.removeChildren()
@@ -993,6 +998,7 @@ export default {
     } else if (me.outLine_container) {
       me.outLine_container.removeChildren()
     }
+    me = null
   },
   cancelInMove: function () {
     const me = this
@@ -1171,9 +1177,7 @@ export default {
     rectangle
       .on('rightdown', me.onRightC)
       .on('mousedown', me.onAssociationStart)
-      .on('mousemove', function (event) {
-        me.onDragMove(rectangle, event)
-      })
+      .on('mousemove', me.onDragMove)
       .on('mouseupoutside', me.onTemporaryEnd)
       .on('mouseup', me.onTemporaryEnd)
     container.addChild(rectangle)
@@ -1185,7 +1189,7 @@ export default {
     }
   },
   renderTLine: function (t_r, a_r_btn, name, lock) {
-    const me = this
+    let me = this
     // 添加临时组合边框
     me.removeLine()
     for (let i = 0; i < me.ctrl_arr.length; i++) {
@@ -1203,6 +1207,7 @@ export default {
     if (t_r) {
       me.containerLine(me.temporary_rect, true)
     }
+    me = null
   },
   upDownMove: function (index, up, max) {
     const me = this
@@ -1377,7 +1382,7 @@ export default {
       }
     }, 50)
   },
-  renderARC: function (titleType, wordArr) {
+  renderARC: function (titleType, wordArr, textReplace) {
     const me = this
     let setData = null
     let imgSetData = null
@@ -1468,7 +1473,8 @@ export default {
       newD.text = mtext
       newD.rotation = newDeg
       newD.role = 'normal'
-      me.newContainerText(newD, true, false)
+      newD.textReplace = textReplace
+      me.newContainerText(newD, true, true)
     }
     me.renderStage()
   }
