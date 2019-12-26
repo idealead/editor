@@ -19,16 +19,15 @@
 #mainCanvas canvas {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 0%;
   transform-origin: 0% 0%;
-  -webkit-transform-origin: 0% 0%;
-  -moz-transform-origin: 0% 0%;
-  transform: scale(1) translateX(-1500px) translateY(-960px);
+  /* transform: scale(1) translateX(-1500px) translateY(-960px); */
 }
 </style>
 <script>
 // @ is an alias to /src
 import { mapState, mapActions, mapGetters } from 'vuex'
+import axios from 'axios'
 import bus from '@/eventBus.js'
 export default {
   name: 'home',
@@ -41,12 +40,13 @@ export default {
   },
   computed: {
     ...mapState({
-      user_type: state => state.user_type,
-      changeTitle: state => state.changeTitle,
-      changeSubtitle: state => state.changeSubtitle,
-      changeLogo: state => state.changeLogo,
-      changeMain: state => state.changeMain,
-      user_data: state => state.user_data
+      user_type: state => state.user.user_type,
+      changeTitle: state => state.homeCanvas.changeTitle,
+      changeSubtitle: state => state.homeCanvas.changeSubtitle,
+      changeLogo: state => state.homeCanvas.changeLogo,
+      changeMain: state => state.homeCanvas.changeMain,
+      user_data: state => state.user.user_data,
+      api: state => state.api
     })
   },
   created: function() {
@@ -89,11 +89,20 @@ export default {
       if (tempId) me.$store.dispatch('changeTempIdFunc', tempId)
 
       let user_id = parseInt(me.$route.query.user_id)
-      if (user_id)
-        me.$store.dispatch('changeUserDataFunc', {
-          id: user_id,
-          user_name: ''
+      if (user_id&&me.user_type == 'client') {
+        // 获取用户信息
+        axios({
+          methods: 'get',
+          url: `${me.api.get_user_info}?user_id=${user_id}`
+        }).then((res) => {
+          me.$store.dispatch('changeUserDataFunc', {
+            id: user_id,
+            name: res.data.data.user_name
+          })
+        }).catch(()=>{
+          me.$message.error('获取用户信息失败，请刷新重试')
         })
+      }
       // 替换标题、副标题、logo、主图
       //
       let token = me.$route.query.token

@@ -2,8 +2,8 @@
   <div class="top_block">
     <img
       class="insight_logo"
-      @click="backToList(false,clientCenter)"
-      src="../assets/insight_logo.png"
+      @click="backToList(false,'http://ht.idealead.hbindex.com/html/design/#/cover')"
+      src="../assets/logo.png"
     />
     <p class="project_name" v-show="$router.currentRoute.path=='/canvas'">
       项目名称：
@@ -48,8 +48,8 @@
           @click="toUserCenter()"
         ></div>
       </el-tooltip>
-      <div class="user_name">{{user_name?user_name:'用户'}}</div>
-      <div class="logout" @click="logout" v-show="user_type=='designer'">退出登录</div>
+      <div class="user_name">{{name?name:'用户'}}</div>
+      <div class="logout" @click="logout">{{user_type=='designer'?'退出登录':'      '}}</div>
     </div>
     <div class="alert_mask" v-if="alert_show">
       <div class="alert">
@@ -152,7 +152,7 @@
 }
 
 .insight_logo {
-  width: 12.19vw;
+  width: 8.3vw;
   position: absolute;
   top: 50%;
   left: 40px;
@@ -253,7 +253,9 @@
   vertical-align: top;
   font-family: 'SiYuan';
 }
-
+.logout{
+  min-height: 60px
+}
 @media only screen and (max-width: 1600px) and (min-width: 1280px) {
   .user_name,
   .logout,
@@ -370,15 +372,10 @@ export default {
   },
   computed: {
     ...mapState({
-      window_w: state => state.window_w,
-      window_h: state => state.window_h,
-      canvas_width: state => state.canvas_width,
-      canvas_height: state => state.canvas_height,
-      project_m_comp: state => state.project_m_comp,
-      user_type: state => state.user_type,
-      mould_name: state => state.mould_name,
-      user_name: state => state.user_data.user_name,
-      user_data: state => state.user_data
+      user_type: state => state.user.user_type,
+      mould_name: state => state.homeCanvas.mould_name,
+      name: state => state.user.user_data.name,
+      user_data: state => state.user.user_data
     }),
     set_mould_name: function() {
       return this.mould_name

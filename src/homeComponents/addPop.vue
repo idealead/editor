@@ -5,11 +5,11 @@
         <div class="addPop_block" v-show="addBtn_show">
           <div class="addPop_btn addPop_textBtn" @click="addChose('text')">
             <div class="addPop_addText addPop_addBtn"></div>
-            <p>文 字</p>
+            <p>添加文字</p>
           </div>
           <div class="addPop_btn addPop_imageBtn" @click="addChose('image')">
             <div class="addPop_addImage addPop_addBtn"></div>
-            <p>图 片</p>
+            <p>添加图片</p>
           </div>
         </div>
       </transition>
@@ -34,7 +34,7 @@
               :show-file-list="false"
             >
               <i class="el-icon-plus"></i>
-              <!-- <el-button size="small" type="primary">点击上传</el-button> -->
+              <p>本地上传</p>
               <!-- <div slot="tip" class="el-upload__tip">
             <p slot="tip" class="addPop_back" @click="back" v-if="!image_change">返回</p>
               </div>-->
@@ -60,6 +60,15 @@
   display: inline-block;
   overflow: hidden;
   margin: 5px;
+  position: relative;
+  p{
+    position: absolute;
+    bottom: 5px;
+    text-align: center;
+    font-size: 12px;
+    width: 100%;
+    line-height: 12px;
+  }
 }
 .chosseImg {
   width: 100px;
@@ -102,7 +111,7 @@
 }
 
 .addPop_upload_demo .el-upload-list {
-  width: calc(100% + 17px);
+  width: calc(100% + 18px);
   height: calc(100% - 50px);
   overflow-y: auto;
   margin-top: 10px;
@@ -177,7 +186,7 @@
 .addPop {
   width: 1300px;
   height: 300px;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%) translateZ(0);
@@ -306,11 +315,11 @@ import axios from 'axios'
 export default {
   name: 'addPop',
   props: {
-    msg: String //例子
+    msg: String // 例子
   },
   computed: {
     ...mapState({
-      user_data: state => state.user_data,
+      user_data: state => state.user.user_data,
       api: state => state.api
     }),
     key_entf: function() {
@@ -439,14 +448,14 @@ export default {
     add_element_image: function(file) {
       const me = this
       if (me.image_change) {
-        //替换图片
+        // 替换图片
         let data = {
           file_id: file.id,
           src: file.src
         }
         bus.$emit('change_in_move_image', data)
       } else {
-        //新增图片
+        // 新增图片
         let time = new Date().getTime()
         let data = {
           file_id: file.id,
@@ -512,7 +521,7 @@ export default {
       key.isUp = true
       key.press = undefined
       key.release = undefined
-      //The `downHandler`
+      // The `downHandler`
       key.downHandler = event => {
         if (event.keyCode === key.code) {
           if (key.isUp && key.press) key.press()
@@ -521,7 +530,7 @@ export default {
           event.preventDefault()
         }
       }
-      //The `upHandler`
+      // The `upHandler`
       key.upHandler = event => {
         if (event.keyCode === key.code) {
           if (key.isDown && key.release) key.release()
@@ -530,7 +539,7 @@ export default {
           event.preventDefault()
         }
       }
-      //Attach event listeners
+      // Attach event listeners
       window.addEventListener('keydown', key.downHandler.bind(key), false)
       window.addEventListener('keyup', key.upHandler.bind(key), false)
       return key

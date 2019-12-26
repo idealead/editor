@@ -91,6 +91,7 @@
 // }
 .box-card:hover {
   width: calc(100% - 30px);
+  border: 1px solid red
 }
 .text-item {
   font-size: 14px;
@@ -299,12 +300,12 @@ import axios from 'axios'
 export default {
   name: 'new-layer',
   props: {
-    msg: String //例子
+    msg: String // 例子
   },
   computed: {
     ...mapState({
-      user_data: state => state.user_data,
-      tempId: state => state.tempId,
+      user_data: state => state.user.user_data,
+      tempId: state => state.homeCanvas.tempId,
       api: state => state.api
     })
   },
@@ -327,11 +328,14 @@ export default {
     bus.$off('getRecommend').$on('getRecommend', father_id => {
       me.getRecommend(father_id)
     })
+    bus.$off('tabChange').$on('tabChange',name=>{
+      me.activeName=name
+    })
   },
   mounted: function() {},
   methods: {
     click_in_move: function(id) {
-      const me = this
+      // const me = this
       bus.$emit('layer_click', id)
     },
     showHideLayer: function() {
@@ -339,9 +343,7 @@ export default {
       me.$set(me, 'layer_show', !me.layer_show)
     },
     tabClick: function(tab, event) {
-      const me = this
-      // if (me.activeName == "text") {
-      // }
+
     },
     getRecommend: function(father_id) {
       const me = this

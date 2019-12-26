@@ -63,15 +63,15 @@
 <script type="text/javascript">
 import { mapState, mapActions, mapGetters } from 'vuex'
 import bus from '@/eventBus.js'
-import axios from 'axios'
+// import axios from 'axios'
 export default {
   name: 'tipMask',
   props: {
-    msg: String //例子
+    msg: String // 例子
   },
   computed: {
     ...mapState({
-      user_data: state => state.user_data,
+      user_data: state => state.user.user_data,
       api: state => state.api
     })
   },
@@ -96,18 +96,24 @@ export default {
           maskimg: require(`@/assets/canvas/mask${i}.png`), // 地址
           tipsimg: require(`@/assets/canvas/tips${i}.png`),
           tipclassname: `tips${i}`, // 提示文案classname
-          showif: i == 1 ? true : false
+          showif: i === 1
         })
       }
       me.$set(me, 'tipsProcess', arr)
     },
     next: function(index) {
+      // 此处index从0开始
       const me = this
       me.$set(me.tipsProcess[index], 'showif', false)
       if (index + 1 == me.tipsProcess.length) {
         // 最后一个
         me.$emit('closeTip')
       } else {
+        if (index == 2) {
+          bus.$emit('tabChange', 'layer')
+        } else {
+          bus.$emit('tabChange', 'text')
+        }
         me.$set(me.tipsProcess[index + 1], 'showif', true)
       }
     }

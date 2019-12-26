@@ -82,7 +82,7 @@ export default {
           if (res.data.code == '200') {
             let userD = {
               id: res.data.id,
-              user_name: res.data.data.user_name
+              name: res.data.data.user_name
             }
             localStorage.setItem('userData', JSON.stringify(userD))
             me.$store.dispatch('changeUserDataFunc', userD)

@@ -1,4 +1,4 @@
-export default {
+export const apifile = {
   // ***************************************************designerCenter页面以及其子组件
   // 获取分裂架构列表
   all_framework_info: '/framework/all_framework_info',
@@ -80,6 +80,9 @@ export default {
   arc_find_file: '/Files/find_file_one',
 
   // 保存文案规则
-  add_word_rule: '/Word/add_word_rule'
+  add_word_rule: '/Word/add_word_rule',
+
+  // 获取用户信息
+  get_user_info: '/User/get_user_info'
   // ***************************************************home(canvas)页面以及其子组件
 }

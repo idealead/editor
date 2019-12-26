@@ -79,6 +79,7 @@ export default {
   split: false,
   splitData: [],
   father_id: '', // 根模板id
+  defaultTextFamily: 'defaultSTSong',
   initData: function (data) {
     const me = this
     // 重置参数
@@ -267,7 +268,7 @@ export default {
         // 获取模板中的字体，进行加载
         if (data[i].children[0].ass_children[k].type == 'text') {
           let thistext_obj = data[i].children[0].ass_children[k]
-          if (thistext_obj.style.fontFamily == 'st') {
+          if (me.defaultTextFamily.includes(thistext_obj.style.fontFamily) ) {
             continue
           }
           font_family[`${thistext_obj.style.fontFamily}`] =
@@ -406,7 +407,7 @@ export default {
     const me = this
     let allArr = []
     for (let key in font_family) {
-      if (key !== 'st') {
+      if (!me.defaultTextFamily.includes(key)) {
         allArr.push(
           me.fontPost({
             font_name: `${key}`,
@@ -1151,7 +1152,7 @@ export default {
           } else if (obj.type == 'text') {
             element_data.type = 'text'
             let style = {
-              fontFamily: 'st',
+              fontFamily: 'default',
               fontSize: 50,
               lineHeight: 60,
               fontStyle: 'normal',

@@ -1,12 +1,12 @@
 import Vue from 'vue'
 import App from './App.vue'
-import router from './router'
-import store from './store'
+import router from './router/router'
+import store from './store/store'
 import upperFirst from 'lodash/upperFirst'
 import camelCase from 'lodash/camelCase'
 import ElementUI from 'element-ui'
 import axios from 'axios'
-// import _ from 'lodash'
+import bus from '@/eventBus.js'
 import 'element-ui/lib/theme-chalk/index.css'
 import VueLazyload from 'vue-lazyload'
 
@@ -49,6 +49,32 @@ requireComponent.keys().forEach(fileName => {
     componentConfig.default || componentConfig
   )
 })
+
+router.beforeEach((to, from, next) => {
+  let userId = parseInt(to.query.user_id)
+  if (typeof userId === 'number' && !isNaN(userId)) {
+    next()
+  } else {
+    let data = localStorage.getItem('userData')
+      ? JSON.parse(localStorage.getItem('userData'))
+      : {
+        id: '',
+        name: '' // 数据列表
+      }
+    store.dispatch('changeUserDataFunc', data)
+    if (from.path == '/canvas') {
+      // 摧毁canvas实例
+      bus.$emit('canvasDestroy')
+    }
+    if (to.path === '/login' || (store.state.user.user_data.id || store.state.user.user_data.id !== '')) {
+      next()
+    } else {
+      // 判断有没有用户信息
+      next('/login')
+    }
+  }
+})
+
 window.Vue = new Vue({
   router,
   store,

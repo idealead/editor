@@ -154,7 +154,7 @@
 <script>
 // @ is an alias to /src
 import { mapState, mapActions, mapGetters } from 'vuex'
-import bus from "@/eventBus.js"
+// import bus from "@/eventBus.js"
 import axios from 'axios'
 export default {
   name: 'myMaterial',
@@ -188,8 +188,8 @@ export default {
   },
   computed: {
     ...mapState({
-      user_type: state => state.user_type,
-      user_data: state => state.user_data,
+      user_type: state => state.user.user_type,
+      user_data: state => state.user.user_data,
       api: state => state.api
     }),
     uploadUrl: function() {
@@ -197,8 +197,7 @@ export default {
     }
   },
   created: function() {
-    const me = this;
-
+    
   },
   mounted: function() {
     const me = this;

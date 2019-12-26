@@ -1,5 +1,5 @@
 <template>
-  <div id="mainCanvas" v-loading.fullscreen.lock="fullscreenLoading">
+  <div id="mainCanvas" v-loading.fullscreen.lock="(fullscreenLoading&&firstEdit)">
     <div
       class="mouse_right_block"
       v-show="right_block.show"
@@ -252,7 +252,7 @@
                       <el-slider
                         v-model="edit_bar.text.leading"
                         class
-                        :min="-20"
+                        :min="-30"
                         :max="100"
                         @change="leading_change"
                       ></el-slider>
@@ -288,9 +288,9 @@
             @click.self="showColorBlock"
             :class="{ color_btn_active: edit_bar.edit_color }"
           >
-            <div class="rotation_block" v-show="edit_bar.edit_color">
+            <div class="align_block" v-show="edit_bar.edit_color">
               <div class="block_title">颜 色</div>
-              <div class="rotation_body_block">
+              <div class="align_body_block">
                 <el-row class>
                   <el-col :span="24">
                     <div class="block text_left">
@@ -704,7 +704,6 @@
   </div>
 </template>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style></style>
 <script>
 import * as PIXI from 'pixi.js'
 import { mapState, mapActions, mapGetters } from 'vuex'
@@ -713,23 +712,22 @@ import axios from 'axios'
 import element_func from '@/homeComponents/pixiFunc/element_function.js'
 import container_func from '@/homeComponents/pixiFunc/container_function.js'
 import other_func from '@/homeComponents/pixiFunc/other_function.js'
-import logo from '../assets/logo.png'
 import scale from '../assets/scale.png'
 import rotate from '../assets/rotate.png'
 import stretch from '../assets/stretch.png'
-import '../css/canvas.less'
-document.oncontextmenu = function () {
+import '@/homeComponents/css/canvas.less'
+document.oncontextmenu = function() {
   event.returnValue = false
 }
 export default {
+  mixins: [element_func, container_func, other_func],
   name: 'Canvas',
   props: {
     msg: String
   },
-  data () {
+  data() {
     return {
       reRender: true,
-      logo: logo,
       scale: scale,
       rotate: rotate,
       stretch: stretch,
@@ -813,7 +811,7 @@ export default {
           fontStyle: 'normal',
           fontWeight: 'normal',
           color: '#000000',
-          fontFamily: 'st',
+          fontFamily: 'default',
           align: 'center',
           dropShadow: false,
           dropShadowColor: '#000000',
@@ -821,7 +819,8 @@ export default {
           dropShadowDistance: 5
         },
         fontFamily: [
-          { name: '宋体', value: 'st' },
+          { name: '默认', value: 'default' },
+          { name: '华文宋体', value: 'STSong' },
           { name: '苹方黑体', value: 'pfht' },
           { name: '日本花园明朝体', value: 'japanhymc' },
           { name: '杨任东竹石体-Bold', value: 'yrdzsl-Bold' },
@@ -833,14 +832,19 @@ export default {
           { name: '方正祥隶繁体', value: 'fzxlft' },
           { name: '方正魏碑繁体', value: 'fzwbft' },
           { name: '方正正粗黑', value: 'fzzch' },
+          { name: '方正艺黑体', value: 'fzyht' },
           { name: '方正牟氏黑隶简体', value: 'fzmshljt' },
           { name: '方正方魅简体', value: 'fzfmjt' },
           { name: '方正粗圆GBK', value: 'fzcygbk' },
           { name: '方正像素24', value: 'fzxs24' },
+          { name: '方正点阵', value: 'fzdz' },
           { name: '方正幼线', value: 'fzyx' },
           { name: '方正兰亭中粗黑_GBK', value: 'fzltzch_gbk' },
           { name: '方正粗活意简体', value: 'fzchyjt' },
+          { name: '方正粗雅宋扁繁体', value: 'fzcysbft' },
+          { name: '方正吕建德楷体', value: 'fzljdkt' },
           { name: '华康勘亭流_简&繁', value: 'hkktlj' },
+          { name: '华康宋体W12', value: 'hkstw12' },
           { name: '叶根友特楷简体', value: 'ygytkjt' },
           { name: '建行儒黑中', value: 'jhrhz' },
           { name: '汉仪铸字苏打黑', value: 'hyzzsdh' },
@@ -849,7 +853,8 @@ export default {
           { name: '潮字社凌渡鲲鹏简', value: 'czsldkpj' },
           { name: '华康翩翩', value: 'hkpp' },
           { name: 'ALBA', value: 'alba' },
-          { name: '方正吕建德楷体', value: 'fzljdkt' },
+          { name: 'Adobe仿宋', value: 'adobefs' },
+          { name: 'Adobe黑体', value: 'adobeht' },
           { name: '汉仪迪升英雄体', value: 'hydsyxt' },
           { name: '百度综艺简体', value: 'bdzyjt' }
           // { name: "凌渡鲲鹏简", value: "REEJI-CHAO-KunPengGB" }
@@ -921,32 +926,33 @@ export default {
       textPositionArr: [], // 文案替换位置数组
       saveTextRule: false, // 文本规则是否更新（在保存模板之后）
       openF: 'text',
-      fullscreenLoading: false // 显示loading
+      defaultTextFamily: 'STSongdefault',
+      fullscreenLoading: true // 显示loading
     }
   },
   computed: {
     ...mapState({
-      window_w: state => state.window_w,
-      window_h: state => state.window_h,
-      canvas_width: state => state.canvas_width,
-      canvas_height: state => state.canvas_height,
-      project_m_comp: state => state.project_m_comp,
-      user_type: state => state.user_type,
-      tempId: state => state.tempId,
+      window_w: state => state.homeCanvas.window_w,
+      window_h: state => state.homeCanvas.window_h,
+      canvas_width: state => state.homeCanvas.canvas_width,
+      canvas_height: state => state.homeCanvas.canvas_height,
+      project_m_comp: state => state.homeCanvas.project_m_comp,
+      user_type: state => state.user.user_type,
+      tempId: state => state.homeCanvas.tempId,
       // changeTitle: state => state.changeTitle,
       // changeSubtitle: state => state.changeSubtitle,
       // changeLogo: state => state.changeLogo,
       // changeMain: state => state.changeMain,
       // logoFileId: state => state.logoFileId,
       // mainFileId: state => state.mainFileId,
-      token: state => state.token,
-      mould_name: state => state.mould_name,
-      structure_id: state => state.structure_id,
-      user_data: state => state.user_data,
-      new_structure_id: state => state.new_structure_id,
-      structure_position: state => state.structure_position,
+      // token: state => state.token,
+      mould_name: state => state.homeCanvas.mould_name,
+      structure_id: state => state.homeCanvas.structure_id,
+      user_data: state => state.user.user_data,
+      new_structure_id: state => state.homeCanvas.new_structure_id,
+      structure_position: state => state.homeCanvas.structure_position,
       api: state => state.api,
-      ffName: function () {
+      ffName: function() {
         for (let item of this.edit_bar.fontFamily) {
           if (item.value == this.edit_bar.text.fontFamily) {
             return item.name
@@ -954,7 +960,7 @@ export default {
         }
       }
     }),
-    key_ctrlf: function () {
+    key_ctrlf: function() {
       let second = 91
       // 判断内核
       let u = navigator.userAgent
@@ -975,27 +981,27 @@ export default {
       ctrlf.release = () => {}
       return ctrlf
     },
-    key_zf: function () {
+    key_zf: function() {
       const me = this
       let zf = this.keyboard(90)
       zf.press = () => {}
       zf.release = () => {}
       return zf
     },
-    key_yf: function () {
+    key_yf: function() {
       let yf = this.keyboard(89)
       yf.press = () => {}
       yf.release = () => {}
       return yf
     },
-    right_block_ass: function () {
+    right_block_ass: function() {
       if (this.right_block.menu.ass == 1 || this.right_block.menu.ass == 2) {
         return true
       } else {
         return false
       }
     },
-    canvas_ratio_arr: function () {
+    canvas_ratio_arr: function() {
       const me = this
       let m = me.canvas_width
       let n = me.canvas_height
@@ -1015,12 +1021,16 @@ export default {
       arr[1] = n
       return arr
     },
-    mypixi: function () {
+    mypixi: function() {
       return PIXI
+    },
+    firstEdit: function() {
+      // true为再次打开
+      return !!window.localStorage.getItem('firstEdit')
     }
   },
   watch: {},
-  beforeDestroy: function () {
+  beforeDestroy: function() {
     const me = this
     me.$store.dispatch('changeTempIdFunc', '')
     // 尝试解决，内存泄露
@@ -1029,6 +1039,17 @@ export default {
     // me.key_zf = null;
     // me.key_yf = null;
     window.onresize = null
+    me.p_app = null
+    me.data = () => null
+  },
+  created: function() {
+    const me = this
+    this.p_app = new PIXI.Application({
+      backgroundColor: 0xf5f5f5,
+      width: me.window_w,
+      height: me.window_h,
+      antialias: 1
+    })
     bus
       .$off('add_element_func')
       .$off('layer_click')
@@ -1038,26 +1059,15 @@ export default {
       .$off('client_save')
       .$off('change_in_move_image')
       .$off('canvasDestroy')
-    me.p_app = null
-    me.data = () => null
-  },
-  created: function () {
-    const me = this
-    this.p_app = new PIXI.Application({
-      backgroundColor: 0xf5f5f5,
-      width: me.window_w,
-      height: me.window_h,
-      antialias: 1
-    })
     // 摧毁实例
-    bus.$on('canvasDestroy', function () {
+    bus.$on('canvasDestroy', function() {
       me.$destroy()
     })
     // 清空，初始化数据
-    bus.$on('add_element_func', function (data) {
+    bus.$on('add_element_func', function(data) {
       // 添加元素进canvas
       if (data.src !== '' && data.text == '') {
-        me.newContainer(data, false, function () {
+        me.newContainer(data, false, function() {
           me.updateLayer()
           // 存储进活动日志
           me.pushActiveLog(true)
@@ -1070,13 +1080,13 @@ export default {
         me.pushActiveLog(true)
       }
     })
-    bus.$on('layer_click', function (id) {
+    bus.$on('layer_click', function(id) {
       me.show_click(id)
     })
-    bus.$on('addPopShow', function (show) {
+    bus.$on('addPopShow', function(show) {
       me.addPopShow(show)
     })
-    bus.$on('change_text', function (text) {
+    bus.$on('change_text', function(text) {
       // 加载压缩字体
       let fontData = {
         user_id: me.user_data.id,
@@ -1084,7 +1094,7 @@ export default {
         text: text
       }
       me.loadCutFont(fontData)
-        .then(function (res) {
+        .then(function(res) {
           if (me.in_move.textReverse) {
             me.textReverse(text)
           } else {
@@ -1097,19 +1107,19 @@ export default {
         })
         .catch(res => res)
     })
-    bus.$on('designer_save', function (mould_name, link) {
+    bus.$on('designer_save', function(mould_name, link) {
       me.saveMould(mould_name, link)
     })
-    bus.$on('client_save', function (mould_name, leave, link) {
+    bus.$on('client_save', function(mould_name, leave, link) {
       me.saveMould(mould_name, link, leave)
     })
-    bus.$on('change_in_move_image', function (data) {
+    bus.$on('change_in_move_image', function(data) {
       me.changeInMoveImage(data)
     })
-    bus.$off('recommendText').$on('recommendText', function (textarr) {
+    bus.$off('recommendText').$on('recommendText', function(textarr) {
       me.recommendText(textarr)
     })
-    bus.$off('editbarClose').$on('editbarClose', function () {
+    bus.$off('editbarClose').$on('editbarClose', function() {
       me.$set(me.edit_bar.btn, 'show', false)
     })
     if (!window.localStorage.getItem('firstEdit')) {
@@ -1119,20 +1129,27 @@ export default {
     // bus.$on("closeMouldFuncShow",function() {
     //   me.$set(me, 'mouldFuncShow', false)
     // })
-    me.key_zf.press = function () {
+    me.key_zf.press = function() {
       // 快捷键监听
       if (me.key_ctrlf.isDown && !me.key_ctrlf.isUp) {
         me.moveActiveLog('prev')
       }
     }
-    me.key_yf.press = function () {
+    me.key_yf.press = function() {
       // 快捷键监听
       if (me.key_ctrlf.isDown && !me.key_ctrlf.isUp) {
         me.moveActiveLog('next')
       }
     }
-    window.onresize = function () {
-      me.resetCanvas()
+    window.onresize = function() {
+      var target = this
+      if (target.resizeFlag) {
+        clearTimeout(target.resizeFlag)
+      }
+      target.resizeFlag = setTimeout(function() {
+        me.resetCanvas()
+        target.resizeFlag = null
+      }, 100)
     }
     setTimeout(() => {
       if (me.tempId || me.structure_id) {
@@ -1143,23 +1160,23 @@ export default {
     }, 200)
   },
   methods: {
-    recommendText: function (arr) {
-      other_func.recommendText.bind(this)(arr)
-    },
-    handleCommand: function (items) {
-      other_func.handleCommand.bind(this)(items[0], items[1])
-    },
-    updateTextPosition: function (arr) {
-      other_func.updateTextPosition.bind(this)(arr)
-    },
-    setReplaceText: function () {
-      other_func.setReplaceText.bind(this)()
-    },
-    setSkew: function () {
+    // recommendText: function(arr) {
+    //   other_func.recommendText.bind(this)(arr)
+    // },
+    // handleCommand: function(items) {
+    //   other_func.handleCommand.bind(this)(items[0], items[1])
+    // },
+    // updateTextPosition: function(arr) {
+    //   other_func.updateTextPosition.bind(this)(arr)
+    // },
+    // setReplaceText: function() {
+    //   other_func.setReplaceText.bind(this)()
+    // },
+    setSkew: function() {
       const me = this
       me.in_move.skew.set(-0.5, 0)
     },
-    changeHue: function (value) {
+    changeHue: function(value) {
       const me = this
       me.in_move.hueNumber = value
       value *= 360
@@ -1169,7 +1186,7 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    dynamicLoadCss: function (url) {
+    dynamicLoadCss: function(url) {
       var head = document.getElementsByTagName('head')[0]
       var link = document.createElement('link')
       link.type = 'text/css'
@@ -1177,7 +1194,7 @@ export default {
       link.href = url
       head.appendChild(link)
     },
-    getCssWoff: function (cssPath, woffPath) {
+    getCssWoff: function(cssPath, woffPath) {
       const me = this
       return [
         axios({
@@ -1195,25 +1212,25 @@ export default {
         })
       ]
     },
-    loadCutFont: function (data) {
+    loadCutFont: function(data) {
       // 加载压缩字体包的请求
       const me = this
-      return new Promise(function (resolve, reject) {
-        if (data.font_name == 'st') {
-          resolve('st')
+      return new Promise(function(resolve, reject) {
+        if (me.defaultTextFamily.includes(data.font_name)) {
+          resolve(data.font_name)
         }
         axios({
           method: 'post',
           url: me.api.cutFont,
           data: data
         })
-          .then(function (res) {
+          .then(function(res) {
             res = res.data
             if (res.code == 1) {
               // 加载css和字体文件用于缓存
               axios
                 .all(me.getCssWoff(res.path, res.woffPath))
-                .then(function (response) {
+                .then(function(response) {
                   // 下方的linkcss，以及字体的加载读缓存就好了。
                   me.dynamicLoadCss(me.api.file_path + res.path)
                   setTimeout(() => {
@@ -1226,29 +1243,29 @@ export default {
               reject(res)
             }
           })
-          .catch(function (err) {
+          .catch(function(err) {
             reject(err)
           })
       })
     },
-    setRole: function (content) {
-      other_func.setRole.bind(this)(content)
-    },
-    setPosition: function (num) {
-      other_func.setPosition.bind(this)(num)
-    },
-    getNewFont: function (fontName, text) {},
-    mouldImg: function () {
+    // setRole: function(content) {
+    //   other_func.setRole.bind(this)(content)
+    // },
+    // setPosition: function(num) {
+    //   other_func.setPosition.bind(this)(num)
+    // },
+    getNewFont: function(fontName, text) {},
+    mouldImg: function() {
       const me = this
       me.cancelInMove()
       // me.downloadImg(me.p_app.renderer.plugins.extract.base64(me.p_app.stage))
-      return me.ClippingImage(me.p_app.renderer.plugins.extract.base64(me.p_app.stage), me.canvas_width, me.canvas_height, 0.92, function (
+      return me.ClippingImage(me.p_app.renderer.plugins.extract.base64(me.p_app.stage), me.canvas_width, me.canvas_height, 0.92, function(
         base64Result
       ) {
         return base64Result
       })
     },
-    ClippingImage: function (base64Codes, width, height, quality, callback) {
+    ClippingImage: function(base64Codes, width, height, quality, callback) {
       const me = this
       var img = new Image()
       img.src = base64Codes
@@ -1261,19 +1278,19 @@ export default {
       createh.nodeValue = height
       canvas.setAttributeNode(createh)
       canvas.setAttributeNode(createw)
-      img.onload = function () {
+      img.onload = function() {
         ctx.drawImage(img, (me.window_w - me.canvas_width) / 2, (me.window_h - me.canvas_height) / 2, width, height, 0, 0, width, height)
         var base64Result = canvas.toDataURL('image/jpeg', quality)
         callback(base64Result)
       }
     },
-    saveMould: function (mould_name, link, leave = false) {
+    saveMould: function(mould_name, link, leave = false) {
       const me = this
       // 保存模板，第一步保存个个元素或组合为素材（图片组合需要生成预览图），第二步将所有素材id上传保存成新模板
       let last = _.cloneDeep(me.active_log[me.active_log.length - 1])
       let material_data = []
       me.getMaterialData(last)
-        .then(function (res) {
+        .then(function(res) {
           let material_data = res
           me.uploadMaterial(mould_name, material_data, link, leave)
         })
@@ -1282,7 +1299,7 @@ export default {
           bus.$emit('saveError')
         })
     },
-    getMaterialData: function (last) {
+    getMaterialData: function(last) {
       const me = this
       let allArr = []
       for (let i = 0; i < last.length; i++) {
@@ -1290,9 +1307,9 @@ export default {
       }
       return Promise.all(allArr)
     },
-    getMd: function (last) {
+    getMd: function(last) {
       const me = this
-      return new Promise(function (resolve, reject) {
+      return new Promise(function(resolve, reject) {
         let material_children = {}
         if (last.children[0].ass_children.length == 1) {
           // 单个图片或者文字
@@ -1330,36 +1347,36 @@ export default {
             url: `${me.api.upload_file_once}1.html`,
             data: formdata
           })
-            .then(function (response) {
+            .then(function(response) {
               material_children.preview = response.data.data.file_id
               material_children.content = me.json_f(last)
               resolve(material_children)
             })
-            .catch(function (error) {
+            .catch(function(error) {
               reject(error)
             })
         }
       })
     },
-    uploadMaterial: function (mould_name, material_data, link, leave) {
+    uploadMaterial: function(mould_name, material_data, link, leave) {
       const me = this
       // 上传素材
       let material_id = []
       let material_id_obj = {}
       me.uploadAllMaterial(material_data)
-        .then(function (res) {
+        .then(function(res) {
           // 获取元素id，用于上传模板
           for (let i = 0; i < res.length; i++) {
             material_id.push(parseInt(res[i].data.data.materialId))
           }
           me.uploadTemp(mould_name, material_id, link, leave)
         })
-        .catch(function (res) {
+        .catch(function(res) {
           console.log(res)
           bus.$emit('saveError')
         })
     },
-    renderARCF: function () {
+    renderARCF: function() {
       // 编辑模板或者保存新模板时渲染弧形文字，为了预览图
       const me = this
       if (me.arc_obj.arc_title != '' && me.arc_obj.arc_titleImg != '' && me.user_type == 'designer') {
@@ -1371,7 +1388,7 @@ export default {
         me.renderARC('arc_subtitle', wordArr)
       }
     },
-    deleteARCF: function () {
+    deleteARCF: function() {
       const me = this
       // 刚添加的弧形文字，渲染后立刻删除
       let len = 0
@@ -1384,7 +1401,7 @@ export default {
         len += wordArr.length
       }
       // 依据弧形文字的字数，删除图层
-      let c_len = _.cloneDeep(me.container_arr.length)
+      let c_len = me.container_arr.length
       me.container_arr.splice(c_len - len, len)
       for (let i = 0; i < len; i++) {
         me.mainStage_container.removeChildAt(c_len - len + 1)
@@ -1392,7 +1409,7 @@ export default {
       me.renderStage()
       // 删除结束
     },
-    uploadTemp: function (mould_name, material_id, link, leave) {
+    uploadTemp: function(mould_name, material_id, link, leave) {
       const me = this
       // 上传模板
       me.cancelInMove()
@@ -1415,8 +1432,8 @@ export default {
       // 判断有没有弧形文字，渲染弧形文字****************************************************************************************************************************
       //
       let img = null
-      setTimeout(function () {
-        me.ClippingImage(me.p_app.renderer.plugins.extract.base64(me.p_app.stage), me.canvas_width, me.canvas_height, 0.52, function (base64Result) {
+      setTimeout(function() {
+        me.ClippingImage(me.p_app.renderer.plugins.extract.base64(me.p_app.stage), me.canvas_width, me.canvas_height, 0.52, function(base64Result) {
           img = base64Result
           // me.downloadImg(img);
           // 如果有"弧形标题（直的）"，则显示回来
@@ -1440,7 +1457,7 @@ export default {
         })
       }, 400)
     },
-    axiosTempF: function (response, funcData) {
+    axiosTempF: function(response, funcData) {
       const me = this
       let preview = response.data.data.file_id
       let level = ''
@@ -1494,7 +1511,7 @@ export default {
         url: me.api.upload_template,
         data: tempData
       })
-        .then(function (response) {
+        .then(function(response) {
           if (me.user_type == 'designer') {
             bus.$emit('designerSave')
             // 如果是骨架专属模板保存成功则清除骨架id
@@ -1525,11 +1542,11 @@ export default {
             }
           }
         })
-        .catch(function () {
+        .catch(function() {
           bus.$emit('saveError')
         })
     },
-    uploadImgF: function (formdata, wantF, funcData) {
+    uploadImgF: function(formdata, wantF, funcData) {
       // 上传图片功能函数，formdata为图片表单，wanF为回调执行方法，funcData为回调传入的函数
       const me = this
       return axios({
@@ -1537,19 +1554,19 @@ export default {
         url: `${me.api.upload_file_once}1.html`,
         data: formdata
       })
-        .then(function (response) {
+        .then(function(response) {
           wantF.bind(me)(response, funcData)
         })
-        .catch(function (error) {
+        .catch(function(error) {
           console.log(error)
           bus.$emit('saveError')
         })
     },
-    uploadMF: function (data) {
+    uploadMF: function(data) {
       const me = this
       return axios.post(me.api.upload_material, data)
     },
-    uploadAllMaterial: function (material_data) {
+    uploadAllMaterial: function(material_data) {
       // 上传全部素材返回素材id，有组合的为一个素材（建议设计师不要使用组合）
       const me = this
       let allArr = []
@@ -1558,23 +1575,23 @@ export default {
       }
       return Promise.all(allArr)
     },
-    json_f: function (obj) {
-      return other_func.json_f.bind(this)(obj)
-    },
-    obj_f: function (json) {
-      return other_func.obj_f.bind(this)(json)
-    },
-    renderTemplate: function (firstLoad = false) {
-      const me = this
-      container_func.renderTemplate.bind(me)(firstLoad)
-    },
-    afterLoad: function (data, firstLoad) {
-      container_func.afterLoad.bind(this)(data, firstLoad)
-    },
-    initPixiApp: function () {
+    // json_f: function(obj) {
+    //   return other_func.json_f.bind(this)(obj)
+    // },
+    // obj_f: function(json) {
+    //   return other_func.obj_f.bind(this)(json)
+    // },
+    // renderTemplate: function(firstLoad = false) {
+    //   const me = this
+    //   container_func.renderTemplate.bind(me)(firstLoad)
+    // },
+    // afterLoad: function(data, firstLoad) {
+    //   container_func.afterLoad.bind(this)(data, firstLoad)
+    // },
+    initPixiApp: function() {
       const me = this
       // 加载一些必要的配图
-      me.p_app.loader.add([me.scale, me.rotate, me.stretch]).load(function () {
+      me.p_app.loader.add([me.scale, me.rotate, me.stretch]).load(function() {
         me.p_app.view.id = 'pixiCanvas'
         document.getElementById('mainCanvas').appendChild(me.p_app.view)
         me.p_app.view.style.width = me.window_w + 'px'
@@ -1595,11 +1612,14 @@ export default {
         me.resetCanvas()
         if (me.tempId || me.structure_id) {
           me.renderTemplate(true)
+        } else {
+          me.fullscreenLoading = false
+          me.renderStage()
         }
         mainStage = null
       })
     },
-    getTemplateData: function () {
+    getTemplateData: function() {
       const me = this
       if (me.tempId) {
         let tempId = parseInt(me.tempId)
@@ -1610,7 +1630,7 @@ export default {
             condition: 1
           }
         })
-          .then(function (response) {
+          .then(function(response) {
             let render_data = []
             for (let i = 0; i < response.data.data.material_content.length; i++) {
               if (response.data.data.material_content[i].content) {
@@ -1639,7 +1659,7 @@ export default {
             }
             me.initPixiApp()
           })
-          .catch(function (error) {
+          .catch(function(error) {
             console.log(error)
           })
       } else if (me.structure_id) {
@@ -1740,33 +1760,33 @@ export default {
         // me.initPixiApp()
       }
     },
-    resetCanvas: function () {
-      other_func.resetCanvas.bind(this)()
-    },
-    pushActiveLog: function (permit = false) {
-      other_func.pushActiveLog.bind(this)(permit)
-    },
-    renderStage: function () {
-      const me = this
-      container_func.renderStage.bind(me)()
-    },
-    addCancleRect: function (mainStage) {
-      container_func.addCancleRect.bind(this)(mainStage)
-    },
-    outLine: function () {
-      container_func.outLine.bind(this)()
-    },
-    maskInit: function () {
-      container_func.maskInit.bind(this)()
-    },
-    cancelInMove: function () {
-      container_func.cancelInMove.bind(this)()
-    },
-    cancel_something: function (event) {
+    // resetCanvas: function() {
+    //   other_func.resetCanvas.bind(this)()
+    // },
+    // pushActiveLog: function(permit = false) {
+    //   other_func.pushActiveLog.bind(this)(permit)
+    // },
+    // renderStage: function() {
+    //   const me = this
+    //   container_func.renderStage.bind(me)()
+    // },
+    // addCancleRect: function(mainStage) {
+    //   container_func.addCancleRect.bind(this)(mainStage)
+    // },
+    // outLine: function() {
+    //   container_func.outLine.bind(this)()
+    // },
+    // maskInit: function() {
+    //   container_func.maskInit.bind(this)()
+    // },
+    // cancelInMove: function() {
+    //   container_func.cancelInMove.bind(this)()
+    // },
+    cancel_something: function(event) {
       const me = this
       me.$set(me.right_block, 'show', false)
     },
-    hide_edit_f: function () {
+    hide_edit_f: function() {
       const me = this
       // 隐藏编辑面板按钮里的功能面板
       for (let key in me.edit_bar) {
@@ -1785,7 +1805,7 @@ export default {
       // me.$set(me.edit_bar, "edit_fontFamily_select", false);
       // me.$set(me.edit_bar, "edit_skew", false);
     },
-    showEdit: function (type) {
+    showEdit: function(type) {
       const me = this
       let edit_btn = {}
       me.hide_edit_f()
@@ -1920,29 +1940,29 @@ export default {
       me.change_edit_bar(edit_btn)
       me.updateLayer()
     },
-    change_edit_bar: function (data) {
+    change_edit_bar: function(data) {
       const me = this
       for (let key in me.edit_bar.btn) {
         me.$set(me.edit_bar.btn, key, data[key])
       }
     },
-    showEditLocation: function () {
+    showEditLocation: function() {
       const me = this
       me.hide_edit_f()
       me.$set(me.edit_bar, 'edit_location', true)
     },
-    showEditAlign: function () {
+    showEditAlign: function() {
       const me = this
       me.hide_edit_f()
       me.$set(me.edit_bar, 'edit_align', true)
     },
-    show_text_block: function () {
+    show_text_block: function() {
       const me = this
       me.hide_edit_f()
       me.updateText()
       me.$set(me.edit_bar, 'edit_text', true)
     },
-    updateText: function () {
+    updateText: function() {
       const me = this
       let text_data = {
         fontSize: Math.floor(me.in_move.style.fontSize),
@@ -1960,10 +1980,10 @@ export default {
       }
       me.$set(me.edit_bar, 'text', text_data)
     },
-    fontFamily_change: function (value) {
+    fontFamily_change: function(value) {
       const me = this
       if (value == me.in_move.style.fontFamily) return false
-      if (value == 'st') {
+      if (me.defaultTextFamily.includes(value)) {
         me.in_move.style.fontFamily = value
         me.$set(me.edit_bar, 'edit_fontFamily_select', false)
         me.updateText()
@@ -1977,7 +1997,7 @@ export default {
         text: me.in_move.text
       }
       me.loadCutFont(fontData)
-        .then(function (res) {
+        .then(function(res) {
           me.in_move.style.fontFamily = value
           me.$set(me.edit_bar, 'edit_fontFamily_select', false)
           me.updateText()
@@ -1987,11 +2007,11 @@ export default {
         })
         .catch(res => res)
     },
-    showFontFamily: function () {
+    showFontFamily: function() {
       const me = this
       me.$set(me.edit_bar, 'edit_fontFamily_select', true)
     },
-    fontSize_change: function (value) {
+    fontSize_change: function(value) {
       value = parseInt(value)
       const me = this
       // start
@@ -2013,13 +2033,13 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    alignChange: function (value) {
+    alignChange: function(value) {
       const me = this
       me.in_move.style.align = value
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    fontStyle_change: function (value) {
+    fontStyle_change: function(value) {
       const me = this
       if (value) {
         me.in_move.style.fontStyle = 'italic'
@@ -2031,7 +2051,7 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    fontWeightChange: function (value) {
+    fontWeightChange: function(value) {
       const me = this
       if (value) {
         me.in_move.style.fontWeight = 'bolder'
@@ -2043,7 +2063,7 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    leading_change: function (value) {
+    leading_change: function(value) {
       value = parseInt(value)
       const me = this
       me.in_move.style.leading = value
@@ -2051,7 +2071,7 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    letterSpacing_change: function (value) {
+    letterSpacing_change: function(value) {
       value = parseInt(value)
       const me = this
       me.in_move.style.letterSpacing = value
@@ -2059,13 +2079,13 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    fontColor_change: function (value) {
+    fontColor_change: function(value) {
       const me = this
       me.in_move.style.fill = value
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    dropShadow: function (value) {
+    dropShadow: function(value) {
       const me = this
       me.in_move.style.dropShadow = value
       me.inMoveChangeBorder()
@@ -2073,7 +2093,7 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    inMoveChangeBorder: function () {
+    inMoveChangeBorder: function() {
       // 单个元素改变边框
       const me = this
       if ((me.ctrl_arr && me.ctrl_arr.length == 0) || !me.ctrl_arr) {
@@ -2082,7 +2102,7 @@ export default {
         me.aSingleClickBorder(me.in_move.association_name)
       }
     },
-    dropShadowColorChange: function (value) {
+    dropShadowColorChange: function(value) {
       const me = this
       let color = me.colorRGB2Hex(value)
       me.in_move.style.dropShadowColor = color
@@ -2090,7 +2110,7 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    colorRGB2Hex: function (color) {
+    colorRGB2Hex: function(color) {
       var rgb = color.split(',')
       var r = parseInt(rgb[0].split('(')[1])
       var g = parseInt(rgb[1])
@@ -2098,51 +2118,51 @@ export default {
       var hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
       return hex
     },
-    dropShadowBlurChange: function (value) {
+    dropShadowBlurChange: function(value) {
       const me = this
       me.in_move.style.dropShadowBlur = value
       me.containerLine(me.in_move, false)
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    dropShadowDistanceChange: function (value) {
+    dropShadowDistanceChange: function(value) {
       const me = this
       me.in_move.style.dropShadowDistance = value
       me.containerLine(me.in_move, false)
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    onEdit: function () {
+    onEdit: function() {
       const me = this
       me.hide_edit_f()
       me.$set(me.right_block, 'show', false)
       me.$set(me, 'addPop', true)
       bus.$emit('text_edit_mode', me.in_move.text)
     },
-    show_opacity_block: function () {
+    show_opacity_block: function() {
       const me = this
       me.hide_edit_f()
       me.$set(me.edit_bar, 'opacity', me.in_move.alpha * 100)
       me.$set(me.edit_bar, 'edit_opacity', true)
     },
-    show_hue_block: function () {
+    show_hue_block: function() {
       const me = this
       me.hide_edit_f()
       me.edit_bar.hue = me.in_move.hueNumber
       me.$set(me.edit_bar, 'edit_hue', true)
     },
-    showLayerBlock: function () {
+    showLayerBlock: function() {
       const me = this
       me.hide_edit_f()
       me.$set(me.edit_bar, 'edit_layer', true)
     },
-    opacity_change: function (value) {
+    opacity_change: function(value) {
       const me = this
       me.in_move.alpha = value / 100
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    show_rotation_block: function () {
+    show_rotation_block: function() {
       // 初始化旋转值，和in_move一样或者和临时组合、组合一样
       const me = this
       me.hide_edit_f()
@@ -2153,26 +2173,26 @@ export default {
       }
       me.$set(me.edit_bar, 'edit_rotation', true)
     },
-    show_skew_block: function () {
+    show_skew_block: function() {
       const me = this
       me.hide_edit_f()
       me.$set(me.edit_bar, 'skewX', me.in_move.skew.x)
       me.$set(me.edit_bar, 'skewY', me.in_move.skew.y)
       me.$set(me.edit_bar, 'edit_skew', true)
     },
-    showColorBlock: function () {
+    showColorBlock: function() {
       const me = this
       me.hide_edit_f()
       me.updateText()
       me.$set(me.edit_bar, 'edit_color', true)
     },
-    showEditShadow: function () {
+    showEditShadow: function() {
       const me = this
       me.hide_edit_f()
       me.updateText()
       me.$set(me.edit_bar, 'edit_shadow', true)
     },
-    rotationChange: function (value) {
+    rotationChange: function(value) {
       const me = this
       if (me.in_move && !me.temporary_rect) {
         me.in_move.rotation = (value * Math.PI) / 180
@@ -2196,24 +2216,24 @@ export default {
       // 存储进活动日志
       me.pushActiveLog(true)
     },
-    skewChange: function (xy) {
+    skewChange: function(xy) {
       const me = this
       let [x, y] = xy === 'x' ? [me.edit_bar.skewX, me.in_move.skew.y] : [me.in_move.skew.x, me.edit_bar.skewY]
       me.in_move.skew.set(x, y)
     },
-    locationMove: function (way, d_value = 0) {
-      other_func.locationMove.bind(this)(way, d_value)
-    },
-    newContainer: function (set_data, render_add, func = () => {}) {
-      container_func.newContainer.bind(this)(set_data, render_add, func)
-    },
-    addContainer: function (set_data, position = { x: this.canvas_width / 2, y: this.canvas_height / 2 }) {
-      container_func.addContainer.bind(this)(set_data, position)
-    },
-    containerArrAdd: function (m_comp_name, container, id) {
-      container_func.containerArrAdd.bind(this)(m_comp_name, container, id)
-    },
-    findFinalIndex: function (m_comp_name) {
+    // locationMove: function(way, d_value = 0) {
+    //   other_func.locationMove.bind(this)(way, d_value)
+    // },
+    // newContainer: function(set_data, render_add, func = () => {}) {
+    //   container_func.newContainer.bind(this)(set_data, render_add, func)
+    // },
+    // addContainer: function(set_data, position = { x: this.canvas_width / 2, y: this.canvas_height / 2 }) {
+    //   container_func.addContainer.bind(this)(set_data, position)
+    // },
+    // containerArrAdd: function(m_comp_name, container, id) {
+    //   container_func.containerArrAdd.bind(this)(m_comp_name, container, id)
+    // },
+    findFinalIndex: function(m_comp_name) {
       // 递归函数好像放不进container_func
       const me = this
       let final_index = -100 // 相同模块中最后一个元素的index
@@ -2225,7 +2245,7 @@ export default {
         final_index = me.container_arr.length - 1
         return final_index
       } else {
-        me.container_arr.map(function (value, index, array) {
+        me.container_arr.map(function(value, index, array) {
           if (value.m_comp_name == m_comp_name) {
             final_index = index
           }
@@ -2245,46 +2265,46 @@ export default {
         }
       }
     },
-    loadSprite: function (set_data, render_add, func) {
-      container_func.loadSprite.bind(this)(set_data, render_add, func)
-    },
-    loadSvgImg: function (src, sprite, my_set_data, render_add, func) {
-      container_func.loadSvgImg.bind(this)(src, sprite, my_set_data, render_add, func)
-    },
-    addImg: function (sprite, set_data, render_add) {
-      container_func.addImg.bind(this)(sprite, set_data, render_add)
-    },
-    updateSvgScale: function (obj) {
-      element_func.updateSvgScale.bind(this)(obj)
-    },
-    newContainerText: function (set_data, render_add, saveLog = true) {
-      container_func.newContainerText.bind(this)(set_data, render_add, saveLog)
-    },
-    addText: function (set_data, render_add, saveLog) {
-      container_func.addText.bind(this)(set_data, render_add, saveLog)
-    },
-    ruler: function () {
-      container_func.ruler.bind(this)()
-    },
-    containerLine: function (obj, t_a, a_r_btn = false, color = 0x87ceff, lock = false) {
-      container_func.containerLine.bind(this)(obj, t_a, a_r_btn, color, lock)
-    },
-    createBorder: function (obj, t_a, a_r_btn, show_btn = true, color = 0x87ceff) {
-      container_func.createBorder.bind(this)(obj, t_a, a_r_btn, show_btn, color)
-    },
-    addScaleIcon: function (outLineC, obj, t_a, a_r_btn = false) {
-      container_func.addScaleIcon.bind(this)(outLineC, obj, t_a, a_r_btn)
-    },
-    addRotateIcon: function (outLineC, obj, t_a, a_r_btn = false) {
-      container_func.addRotateIcon.bind(this)(outLineC, obj, t_a, a_r_btn)
-    },
-    addStretchIcon: function (outLineC, obj) {
-      container_func.addStretchIcon.bind(this)(outLineC, obj)
-    },
-    onRightC: function (event) {
-      element_func.onRightC.bind(this)(event)
-    },
-    onRightFunc: function (f_parm, event = null) {
+    // loadSprite: function(set_data, render_add, func) {
+    //   container_func.loadSprite.bind(this)(set_data, render_add, func)
+    // },
+    // loadSvgImg: function(src, sprite, my_set_data, render_add, func) {
+    //   container_func.loadSvgImg.bind(this)(src, sprite, my_set_data, render_add, func)
+    // },
+    // addImg: function(sprite, set_data, render_add) {
+    //   container_func.addImg.bind(this)(sprite, set_data, render_add)
+    // },
+    // updateSvgScale: function(obj) {
+    //   element_func.updateSvgScale.bind(this)(obj)
+    // },
+    // newContainerText: function(set_data, render_add, saveLog = true) {
+    //   container_func.newContainerText.bind(this)(set_data, render_add, saveLog)
+    // },
+    // addText: function(set_data, render_add, saveLog) {
+    //   container_func.addText.bind(this)(set_data, render_add, saveLog)
+    // },
+    // ruler: function() {
+    //   container_func.ruler.bind(this)()
+    // },
+    // containerLine: function(obj, t_a, a_r_btn = false, color = 0x87ceff, lock = false) {
+    //   container_func.containerLine.bind(this)(obj, t_a, a_r_btn, color, lock)
+    // },
+    // createBorder: function(obj, t_a, a_r_btn, show_btn = true, color = 0x87ceff) {
+    //   container_func.createBorder.bind(this)(obj, t_a, a_r_btn, show_btn, color)
+    // },
+    // addScaleIcon: function(outLineC, obj, t_a, a_r_btn = false) {
+    //   container_func.addScaleIcon.bind(this)(outLineC, obj, t_a, a_r_btn)
+    // },
+    // addRotateIcon: function(outLineC, obj, t_a, a_r_btn = false) {
+    //   container_func.addRotateIcon.bind(this)(outLineC, obj, t_a, a_r_btn)
+    // },
+    // addStretchIcon: function(outLineC, obj) {
+    //   container_func.addStretchIcon.bind(this)(outLineC, obj)
+    // },
+    // onRightC: function(event) {
+    //   element_func.onRightC.bind(this)(event)
+    // },
+    onRightFunc: function(f_parm, event = null) {
       const me = this
       if (f_parm.type == 1) {
         // 类型1 为单个元素的删除功能,模拟单个元素点击
@@ -2334,191 +2354,191 @@ export default {
         }
       }
     },
-    onRightDelete: function () {
-      container_func.onRightDelete.bind(this)()
-    },
-    deleteSomeone: function (name, render, callback) {
-      container_func.deleteSomeone.bind(this)(name, render, callback)
-    },
-    onRightAss: function () {
+    // onRightDelete: function() {
+    //   container_func.onRightDelete.bind(this)()
+    // },
+    // deleteSomeone: function(name, render, callback) {
+    //   container_func.deleteSomeone.bind(this)(name, render, callback)
+    // },
+    onRightAss: function() {
       const me = this
       // 将临时组合设置为组合，不同元素模块的不能组合
       me.arrToAss(me.ctrl_arr)
       me.$set(me.right_block, 'show', false)
     },
-    arrToAss: function (element_arr, association_id = -1, render_create = false) {
-      other_func.arrToAss.bind(this)(element_arr, association_id, render_create)
-    },
-    onRight_unAss: function () {
+    // arrToAss: function(element_arr, association_id = -1, render_create = false) {
+    //   other_func.arrToAss.bind(this)(element_arr, association_id, render_create)
+    // },
+    onRight_unAss: function() {
       const me = this
       // 取消组合，删除组合矩形，清空元素的组合名称
       // 情空临时矩形区域,清空包含在ctrl_arr数组里的其他组合矩形
       me.removeLine()
       me.clearTemAss(true, true)
-      me.ctrl_arr.map(function (value, index, array) {
+      me.ctrl_arr.map(function(value, index, array) {
         value.association_name = ''
       })
       me.ctrl_arr.length = 0
       me.$set(me.right_block, 'show', false)
       me.cancelInMove() // 取消右侧编辑栏
     },
-    onDragStart: function (event) {
-      element_func.onDragStart.bind(this)(event)
-    },
-    onDragMove: function (event) {
-      element_func.onDragMove.bind(this)(event)
-    },
-    onDragEnd: function (event) {
-      element_func.onDragEnd.bind(this)(event)
-    },
-    onScaleStart: function (event) {
-      element_func.onScaleStart.bind(this)(event)
-    },
-    onScaleMove: function (btn, event) {
-      element_func.onScaleMove.bind(this)(btn, event)
-    },
-    onScaleEnd: function () {
-      element_func.onScaleEnd.bind(this)()
-    },
-    onRotateStart: function () {
-      element_func.onRotateStart.bind(this)()
-    },
-    onRotateMove: function (event) {
-      element_func.onRotateMove.bind(this)(event)
-    },
-    onRotateEnd: function () {
-      element_func.onRotateEnd.bind(this)()
-    },
-    onTemporaryStart: function (event) {
-      element_func.onTemporaryStart.bind(this)(event)
-    },
-    onTemporaryEnd: function () {
-      element_func.onTemporaryEnd.bind(this)()
-    },
-    onTScaleStart: function (event) {
-      element_func.onTScaleStart.bind(this)(event)
-    },
-    onTScaleMove: function (btn, event) {
-      element_func.onTScaleMove.bind(this)(btn, event)
-    },
-    onTScaleEnd: function () {
-      element_func.onTScaleEnd.bind(this)()
-    },
-    onTRotateStart: function (event = null) {
-      element_func.onTRotateStart.bind(this)(event)
-    },
-    onTRotateMove: function (event) {
-      element_func.onTRotateMove.bind(this)(event)
-    },
-    onTRotateEnd: function () {
-      element_func.onTRotateEnd.bind(this)()
-    },
-    onAssociationStart: function (event, right = false, lock = false) {
-      element_func.onAssociationStart.bind(this)(event, right, lock)
-    },
-    onAScaleStart: function (event) {
-      element_func.onAScaleStart.bind(this)(event)
-    },
-    onAScaleMove: function (btn, event) {
-      element_func.onAScaleMove.bind(this)(btn, event)
-    },
-    onAScaleEnd: function () {
-      element_func.onAScaleEnd.bind(this)()
-    },
-    onARotateStart: function (event = null) {
-      element_func.onARotateStart.bind(this)(event)
-    },
-    onARotateMove: function (btn = null, event = null) {
-      element_func.onARotateMove.bind(this)(btn, event)
-    },
-    onARotateEnd: function (btn = null, event = null) {
-      element_func.onARotateEnd.bind(this)(btn, event)
-    },
-    forChangeAssociation: function (ass_id = undefined) {
-      element_func.forChangeAssociation.bind(this)(ass_id)
-    },
-    onStretchStart: function (event) {
-      element_func.onStretchStart.bind(this)(event)
-    },
-    onStretchMove: function (event) {
-      element_func.onStretchMove.bind(this)(event)
-    },
-    onStretchEnd: function () {
-      element_func.onStretchEnd.bind(this)()
-    },
-    normalStart: function (that, data) {
-      element_func.normalStart.bind(this)(that, data)
-    },
-    ctrlDeviation: function (data, t_r, tem_move = true) {
-      element_func.ctrlDeviation.bind(this)(data, t_r, tem_move)
-    },
-    rotateOBj: function (num, x) {
-      element_func.rotateOBj.bind(this)(num, x)
-    },
-    tRotateOBj: function (num, x) {
-      element_func.tRotateOBj.bind(this)(num, x)
-    },
-    aRotateOBj: function (num, x, centerX) {
-      element_func.aRotateOBj.bind(this)(num, x, centerX)
-    },
-    scaleAll: function (n, d_value, text_num = 0) {
-      element_func.scaleAll.bind(this)(n, d_value, text_num)
-    },
-    tScaleAll: function (n, that, present_w) {
-      element_func.tScaleAll.bind(this)(n, that, present_w)
-    },
-    aScaleAll: function (n, that) {
-      element_func.aScaleAll.bind(this)(n, that)
-    },
-    scaleTextEnd (text) {
-      element_func.scaleTextEnd.bind(this)(text)
-    },
-    moveIcon: function (obj) {
-      element_func.moveIcon.bind(this)(obj)
-    },
-    removeLine: function (id = null) {
-      container_func.removeLine.bind(this)(id)
-    },
-    clearTemporary: function () {
-      container_func.clearTemporary.bind(this)()
-    },
-    findCont: function (containerName) {
-      return other_func.findCont.bind(this)(containerName)
-    },
-    sortContainerArr: function (clear_rotation) {
-      container_func.sortContainerArr.bind(this)(clear_rotation)
-    },
-    findMinAndAdd: function (data, a_length = 0, a_name = '') {
-      container_func.findMinAndAdd.bind(this)(data, a_length, a_name)
-    },
-    createAssociation: function (name, m_comp_name, render_create) {
-      container_func.createAssociation.bind(this)(name, m_comp_name, render_create)
-    },
-    createAssociationRect: function (container, name, render_create) {
-      container_func.createAssociationRect.bind(this)(container, name, render_create)
-    },
-    clearTemAss: function (clear_rotation, clear_association = false) {
-      container_func.clearTemAss.bind(this)(clear_rotation, clear_association)
-    },
-    findRect: function (container, data, tem_move) {
-      container_func.findRect.bind(this)(container, data, tem_move)
-    },
-    renderTLine: function (t_r, a_r_btn = false, name = '', lock = false) {
-      container_func.renderTLine.bind(this)(t_r, a_r_btn, name, lock)
-    },
-    aSingleClick: function (that, data) {
-      element_func.aSingleClick.bind(this)(that, data)
-    },
-    aSingleClickBorder: function (ass_name) {
-      element_func.aSingleClickBorder.bind(this)(ass_name)
-    },
-    moveOutLine: function (x, y, obj) {
-      other_func.moveOutLine.bind(this)(x, y, obj)
-    },
-    changeAssociation: function (obj) {
-      other_func.changeAssociation.bind(this)(obj)
-    },
-    addACtrlarr: function (a_name) {
+    // onDragStart: function(event) {
+    //   element_func.onDragStart.bind(this)(event)
+    // },
+    // onDragMove: function(event) {
+    //   element_func.onDragMove.bind(this)(event)
+    // },
+    // onDragEnd: function(event) {
+    //   element_func.onDragEnd.bind(this)(event)
+    // },
+    // onScaleStart: function(event) {
+    //   element_func.onScaleStart.bind(this)(event)
+    // },
+    // onScaleMove: function(btn, event) {
+    //   element_func.onScaleMove.bind(this)(btn, event)
+    // },
+    // onScaleEnd: function() {
+    //   element_func.onScaleEnd.bind(this)()
+    // },
+    // onRotateStart: function() {
+    //   element_func.onRotateStart.bind(this)()
+    // },
+    // onRotateMove: function(event) {
+    //   element_func.onRotateMove.bind(this)(event)
+    // },
+    // onRotateEnd: function() {
+    //   element_func.onRotateEnd.bind(this)()
+    // },
+    // onTemporaryStart: function(event) {
+    //   element_func.onTemporaryStart.bind(this)(event)
+    // },
+    // onTemporaryEnd: function() {
+    //   element_func.onTemporaryEnd.bind(this)()
+    // },
+    // onTScaleStart: function(event) {
+    //   element_func.onTScaleStart.bind(this)(event)
+    // },
+    // onTScaleMove: function(btn, event) {
+    //   element_func.onTScaleMove.bind(this)(btn, event)
+    // },
+    // onTScaleEnd: function() {
+    //   element_func.onTScaleEnd.bind(this)()
+    // },
+    // onTRotateStart: function(event = null) {
+    //   element_func.onTRotateStart.bind(this)(event)
+    // },
+    // onTRotateMove: function(event) {
+    //   element_func.onTRotateMove.bind(this)(event)
+    // },
+    // onTRotateEnd: function() {
+    //   element_func.onTRotateEnd.bind(this)()
+    // },
+    // onAssociationStart: function(event, right = false, lock = false) {
+    //   element_func.onAssociationStart.bind(this)(event, right, lock)
+    // },
+    // onAScaleStart: function(event) {
+    //   element_func.onAScaleStart.bind(this)(event)
+    // },
+    // onAScaleMove: function(btn, event) {
+    //   element_func.onAScaleMove.bind(this)(btn, event)
+    // },
+    // onAScaleEnd: function() {
+    //   element_func.onAScaleEnd.bind(this)()
+    // },
+    // onARotateStart: function(event = null) {
+    //   element_func.onARotateStart.bind(this)(event)
+    // },
+    // onARotateMove: function(btn = null, event = null) {
+    //   element_func.onARotateMove.bind(this)(btn, event)
+    // },
+    // onARotateEnd: function(btn = null, event = null) {
+    //   element_func.onARotateEnd.bind(this)(btn, event)
+    // },
+    // forChangeAssociation: function(ass_id = undefined) {
+    //   element_func.forChangeAssociation.bind(this)(ass_id)
+    // },
+    // onStretchStart: function(event) {
+    //   element_func.onStretchStart.bind(this)(event)
+    // },
+    // onStretchMove: function(event) {
+    //   element_func.onStretchMove.bind(this)(event)
+    // },
+    // onStretchEnd: function() {
+    //   element_func.onStretchEnd.bind(this)()
+    // },
+    // normalStart: function(that, data) {
+    //   element_func.normalStart.bind(this)(that, data)
+    // },
+    // ctrlDeviation: function(data, t_r, tem_move = true) {
+    //   element_func.ctrlDeviation.bind(this)(data, t_r, tem_move)
+    // },
+    // rotateOBj: function(num, x) {
+    //   element_func.rotateOBj.bind(this)(num, x)
+    // },
+    // tRotateOBj: function(num, x) {
+    //   element_func.tRotateOBj.bind(this)(num, x)
+    // },
+    // aRotateOBj: function(num, x, centerX) {
+    //   element_func.aRotateOBj.bind(this)(num, x, centerX)
+    // },
+    // scaleAll: function(n, d_value, text_num = 0) {
+    //   element_func.scaleAll.bind(this)(n, d_value, text_num)
+    // },
+    // tScaleAll: function(n, that, present_w) {
+    //   element_func.tScaleAll.bind(this)(n, that, present_w)
+    // },
+    // aScaleAll: function(n, that) {
+    //   element_func.aScaleAll.bind(this)(n, that)
+    // },
+    // scaleTextEnd(text) {
+    //   element_func.scaleTextEnd.bind(this)(text)
+    // },
+    // moveIcon: function(obj) {
+    //   element_func.moveIcon.bind(this)(obj)
+    // },
+    // removeLine: function(id = null) {
+    //   container_func.removeLine.bind(this)(id)
+    // },
+    // clearTemporary: function() {
+    //   container_func.clearTemporary.bind(this)()
+    // },
+    // findCont: function(containerName) {
+    //   return other_func.findCont.bind(this)(containerName)
+    // },
+    // sortContainerArr: function(clear_rotation) {
+    //   container_func.sortContainerArr.bind(this)(clear_rotation)
+    // },
+    // findMinAndAdd: function(data, a_length = 0, a_name = '') {
+    //   container_func.findMinAndAdd.bind(this)(data, a_length, a_name)
+    // },
+    // createAssociation: function(name, m_comp_name, render_create) {
+    //   container_func.createAssociation.bind(this)(name, m_comp_name, render_create)
+    // },
+    // createAssociationRect: function(container, name, render_create) {
+    //   container_func.createAssociationRect.bind(this)(container, name, render_create)
+    // },
+    // clearTemAss: function(clear_rotation, clear_association = false) {
+    //   container_func.clearTemAss.bind(this)(clear_rotation, clear_association)
+    // },
+    // findRect: function(container, data, tem_move) {
+    //   container_func.findRect.bind(this)(container, data, tem_move)
+    // },
+    // renderTLine: function(t_r, a_r_btn = false, name = '', lock = false) {
+    //   container_func.renderTLine.bind(this)(t_r, a_r_btn, name, lock)
+    // },
+    // aSingleClick: function(that, data) {
+    //   element_func.aSingleClick.bind(this)(that, data)
+    // },
+    // aSingleClickBorder: function(ass_name) {
+    //   element_func.aSingleClickBorder.bind(this)(ass_name)
+    // },
+    // moveOutLine: function(x, y, obj) {
+    //   other_func.moveOutLine.bind(this)(x, y, obj)
+    // },
+    // changeAssociation: function(obj) {
+    //   other_func.changeAssociation.bind(this)(obj)
+    // },
+    addACtrlarr: function(a_name) {
       const me = this
       for (let i = 0; i < me.container_arr.length; i++) {
         if (me.container_arr[i].cont.children[0].association_name == a_name) {
@@ -2526,7 +2546,7 @@ export default {
         }
       }
     },
-    setCtrlArrAssname: function () {
+    setCtrlArrAssname: function() {
       const me = this
       let a = []
       for (let i = 0; i < me.ctrl_arr.length; i++) {
@@ -2537,7 +2557,7 @@ export default {
       a = new Set(a)
       return [...a]
     },
-    ctrlAddAss: function (name, ass_name_arr) {
+    ctrlAddAss: function(name, ass_name_arr) {
       const me = this
       for (let i = 0; i < me.container_arr.length; i++) {
         if (name == me.container_arr[i].cont.children[0].association_name) {
@@ -2546,21 +2566,21 @@ export default {
       }
       return ass_name_arr.push(name)
     },
-    ctrlDisAss: function (name, ass_name_arr) {
+    ctrlDisAss: function(name, ass_name_arr) {
       const me = this
-      me.ctrl_arr = me.ctrl_arr.filter(function (item) {
+      me.ctrl_arr = me.ctrl_arr.filter(function(item) {
         me.removeLine(item.name)
         return item.association_name !== name
       })
       return ass_name_arr.filter(item => item !== name)
     },
-    updateLayer: function () {
-      other_func.updateLayer.bind(this)()
-    },
-    moveActiveLog: function (way) {
-      container_func.moveActiveLog.bind(this)(way)
-    },
-    show_click: function (id) {
+    // updateLayer: function() {
+    //   other_func.updateLayer.bind(this)()
+    // },
+    // moveActiveLog: function(way) {
+    //   container_func.moveActiveLog.bind(this)(way)
+    // },
+    show_click: function(id) {
       const me = this
       let index = me.findCont(id)
       me.in_move = me.container_arr[index].cont.children[0]
@@ -2595,16 +2615,16 @@ export default {
         //
       }
     },
-    moveStructureText: function () {
-      other_func.moveStructureText.bind(this)()
-    },
-    lockFunc: function () {
-      other_func.lockFunc.bind(this)()
-    },
-    unlockFunc: function () {
-      other_func.unlockFunc.bind(this)()
-    },
-    moveIndex: function (up, max = '') {
+    // moveStructureText: function() {
+    //   other_func.moveStructureText.bind(this)()
+    // },
+    // lockFunc: function() {
+    //   other_func.lockFunc.bind(this)()
+    // },
+    // unlockFunc: function() {
+    //   other_func.unlockFunc.bind(this)()
+    // },
+    moveIndex: function(up, max = '') {
       const me = this
       if (me.in_move) {
         me.upDownMove(me.findCont(me.in_move.name), up, max)
@@ -2612,30 +2632,30 @@ export default {
         me.upDownMove(me.findCont(me.ctrl_arr[0].name), up, max)
       }
     },
-    upDownMove: function (index, up, max = '') {
-      container_func.upDownMove.bind(this)(index, up, max)
-    },
-    renderUpDown: function () {
-      container_func.renderUpDown.bind(this)()
-    },
-    toImage: function (returnFile = false) {
+    // upDownMove: function(index, up, max = '') {
+    //   container_func.upDownMove.bind(this)(index, up, max)
+    // },
+    // renderUpDown: function() {
+    //   container_func.renderUpDown.bind(this)()
+    // },
+    toImage: function(returnFile = false) {
       if (!returnFile) {
-        other_func.toImage.bind(this)(returnFile)
+        this.toImage2(returnFile)
       } else {
-        return other_func.toImage.bind(this)(returnFile)
+        return this.toImage2(returnFile)
       }
     },
-    addImgTwo: function (cont, img_arr) {
-      return other_func.addImgTwo.bind(this)(cont, img_arr)
-    },
-    downloadImg: function (imgsrc) {
-      other_func.downloadImg.bind(this)(imgsrc)
-    },
-    canvasToimg: function () {
+    // addImgTwo: function(cont, img_arr) {
+    //   return other_func.addImgTwo.bind(this)(cont, img_arr)
+    // },
+    // downloadImg: function(imgsrc) {
+    //   other_func.downloadImg.bind(this)(imgsrc)
+    // },
+    canvasToimg: function() {
       const me = this
       let img = me.p_app.renderer.plugins.extract.base64(me.p_app.stage)
     },
-    keyboard: function (keyCode, second) {
+    keyboard: function(keyCode, second) {
       let key = {}
       key.code = keyCode
       key.secondCode = second || -111
@@ -2674,30 +2694,30 @@ export default {
       window.addEventListener('keyup', key.upHandler.bind(key), false)
       return key
     },
-    addPopShow: function (show) {
+    addPopShow: function(show) {
       const me = this
       me.$set(me, 'addPop', show)
     },
-    canvasScale: function (type) {
-      other_func.canvasScale.bind(this)(type)
-    },
-    showRuler: function () {
-      other_func.showRuler.bind(this)()
-    },
-    idToImg: function (idArr) {
-      return other_func.idToImg.bind(this)(idArr)
-    },
-    dataURLtoFile: function (dataurl, filename) {
-      return other_func.dataURLtoFile.bind(this)(dataurl, filename)
-    },
-    changeImage: function () {
+    // canvasScale: function(type) {
+    //   other_func.canvasScale.bind(this)(type)
+    // },
+    // showRuler: function() {
+    //   other_func.showRuler.bind(this)()
+    // },
+    // idToImg: function(idArr) {
+    //   return other_func.idToImg.bind(this)(idArr)
+    // },
+    // dataURLtoFile: function(dataurl, filename) {
+    //   return other_func.dataURLtoFile.bind(this)(dataurl, filename)
+    // },
+    changeImage: function() {
       const me = this
       me.hide_edit_f()
       me.$set(me, 'addPop', true)
       bus.$emit('image_change')
       me.$set(me.right_block, 'show', false)
     },
-    changeInMoveImage: function (data) {
+    changeInMoveImage: function(data) {
       const me = this
       let last = _.cloneDeep(me.active_log[me.active_log.length - 1])
       for (let i = 0; i < last.length; i++) {
@@ -2717,22 +2737,22 @@ export default {
       me.$set(me, 'render_data', me.active_log[me.active_log.length - 1])
       me.$set(me, 'active_index', me.active_log.length - 1)
       me.renderTemplate()
-    },
-    renderARC: function (titleType, wordArr, textReplace = null) {
-      container_func.renderARC.bind(this)(titleType, wordArr, textReplace)
-    },
-    fontPost: function (data) {
-      return container_func.fontPost.bind(this)(data)
-    },
-    getAllfontFamily: function (font_family) {
-      return container_func.getAllfontFamily.bind(this)(font_family)
-    },
-    getfontFamilyBack: function (font_family) {
-      return other_func.getfontFamilyBack.bind(this)(font_family)
-    },
-    textReverse: function (text = null) {
-      other_func.textReverse.bind(this)(text)
     }
+    // renderARC: function(titleType, wordArr, textReplace = null) {
+    //   container_func.renderARC.bind(this)(titleType, wordArr, textReplace)
+    // },
+    // fontPost: function(data) {
+    //   return container_func.fontPost.bind(this)(data)
+    // },
+    // getAllfontFamily: function(font_family) {
+    //   return container_func.getAllfontFamily.bind(this)(font_family)
+    // },
+    // getfontFamilyBack: function(font_family) {
+    //   return other_func.getfontFamilyBack.bind(this)(font_family)
+    // },
+    // textReverse: function(text = null) {
+    //   other_func.textReverse.bind(this)(text)
+    // }
     // changeSaveRule: function(bool){
     //   this.saveTextRule=bool
     // }

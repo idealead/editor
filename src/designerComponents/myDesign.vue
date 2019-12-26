@@ -22,8 +22,11 @@
           <p class="projectState" v-if="pageIndex==1">审核通过</p>
           <div v-if="pageIndex==1" class="blockBtn">
             <div class="designBtn" @click="showTagFunc(true,index)">设置标签</div>
-            <div class="designBtn" @click="online(item.id,item.status)">{{item.status==3?'上线':'撤回'}}</div>
-            <div class="designBtn" v-if="item.status==3">删除</div>
+            <div
+              class="designBtn"
+              @click="online(item.id,item.status==3?1:3)"
+            >{{item.status==3?'上线':'下线'}}</div>
+            <div class="designBtn" v-if="item.status==3" @click="online(item.id,0)">撤回提交</div>
           </div>
         </div>
         <el-badge
@@ -299,7 +302,7 @@ import axios from 'axios'
 import _ from 'lodash'
 export default {
   name: 'myDesign',
-  data: function () {
+  data: function() {
     return {
       pageIndex: 0,
       projectArr: [
@@ -324,26 +327,21 @@ export default {
       dynamicTags: [[0, '标签一'], [1, '标签一as'], [2, '标签一12wer3']],
       inputVisible: false,
       inputValue: '',
-      tagPool: [
-        [0, '标签一'],
-        [1, '标签一as'],
-        [2, '标签一12wer3'],
-        [3, '标签一123erter']
-      ]
+      tagPool: [[0, '标签一'], [1, '标签一as'], [2, '标签一12wer3'], [3, '标签一123erter']]
     }
   },
   computed: {
     ...mapState({
-      user_type: state => state.user_type,
-      user_data: state => state.user_data,
+      user_type: state => state.user.user_type,
+      user_data: state => state.user.user_data,
       api: state => state.api
     })
   },
-  created: function () { },
-  mounted: function () {
+  created: function() {},
+  mounted: function() {
     const me = this
     me.getTempData(0)
-    bus.$off('myDesignIndex').$on('myDesignIndex', function (index) {
+    bus.$off('myDesignIndex').$on('myDesignIndex', function(index) {
       if (index == me.pageIndex) {
       } else {
         me.getTempData(index)
@@ -352,7 +350,7 @@ export default {
     })
   },
   methods: {
-    getTempData: function (index) {
+    getTempData: function(index) {
       const me = this
       // 我的设计tab切换
       let postData = {
@@ -363,7 +361,7 @@ export default {
         method: 'post',
         url: me.api.template_audit_list,
         data: postData
-      }).then(function (res) {
+      }).then(function(res) {
         res = res.data
         // 处理设计师用户的模板项目
         if (res.data.length > 0) {
@@ -387,7 +385,7 @@ export default {
         }
       })
     },
-    hoverFunc: function (index) {
+    hoverFunc: function(index) {
       const me = this
       // let project=me.projectArr.map((item)=>{item.select=false;
       //   return item
@@ -395,11 +393,11 @@ export default {
       // me.$set(me,'projectArr',project)
       me.$set(me['projectArr'][index], 'select', true)
     },
-    outFunc: function (index) {
+    outFunc: function(index) {
       const me = this
       me.$set(me['projectArr'][index], 'select', false)
     },
-    submit: function (id, index) {
+    submit: function(id, index) {
       const me = this
       axios({
         method: 'post',
@@ -407,27 +405,28 @@ export default {
         data: {
           id: parseInt(id),
           status: 3,
-          author: me.user_data.id        }
+          author: me.user_data.id
+        }
       })
-        .then(function (res) {
+        .then(function(res) {
           me.projectArr.splice(index, 1)
           me.$message({
             message: '项目提交成功，请前往“已提交”查看',
             type: 'success'
           })
         })
-        .catch(function () {
+        .catch(function() {
           me.$message.error('提交错误请稍后再试')
         })
     },
-    showTagFunc: function (show, index = 0) {
+    showTagFunc: function(show, index = 0) {
       const me = this
       if (show) {
         // 查看标签池
         axios({
           method: 'get',
           url: me.api.find_label_list
-        }).then(function (res) {
+        }).then(function(res) {
           res = res.data
           if (res.data.length > 0) {
             let tagPool = []
@@ -452,10 +451,10 @@ export default {
       }
       me.$set(me, 'showTag', show)
     },
-    handleClose (index) {
+    handleClose(index) {
       this.dynamicTags.splice(index, 1)
     },
-    selectTagFunc: function (tag) {
+    selectTagFunc: function(tag) {
       const me = this
       let tagIn = false
       if (me.dynamicTags && me.dynamicTags.length > 0) {
@@ -470,7 +469,7 @@ export default {
         data = null
       }
     },
-    saveTag: function () {
+    saveTag: function() {
       const me = this
       // 保存标签
       let tagArr = []
@@ -484,7 +483,7 @@ export default {
           id: me.tempData.id,
           label_id: JSON.stringify(tagArr)
         }
-      }).then(function (res) {
+      }).then(function(res) {
         me.getTempData(me.pageIndex)
         me.$message({
           message: '标签保存成功',
@@ -492,57 +491,47 @@ export default {
         })
       })
     },
-    changeProject: function (id) {
+    changeProject: function(id) {
       const me = this
       // me.$router.push({ path: `/canvas?userType=designer&tempId=1520` })
       me.$router.push({
         path: `/canvas?userType=designer&tempId=${parseInt(id)}`
       })
     },
-    online: function (id, status) {
+    online: function(id, status) {
       const me = this
-      if (status == 3) {
-        axios({
-          method: 'post',
-          url: me.api.complete_template_audit,
-          data: {
-            id: parseInt(id),
-            status: 1,
-            author: me.user_data.id
-          }
-        })
-          .then(function (res) {
+      axios({
+        method: 'post',
+        url: me.api.complete_template_audit,
+        data: {
+          id: parseInt(id),
+          status: status,
+          author: me.user_data.id
+        }
+      })
+        .then(function(res) {
+          if (status === 1) {
             me.$message({
               message: '项目上线成功',
               type: 'success'
             })
-            me.getTempData(1)
-          })
-          .catch(function () {
-            me.$message.error('提交错误请稍后再试')
-          })
-      } else {
-        // me.$message.error("目前暂不支持此功能")
-        axios({
-          method: 'post',
-          url: me.api.complete_template_audit,
-          data: {
-            id: parseInt(id),
-            status: 0,
-            author: me.user_data.id
-          }
-        })
-          .then(function (res) {
+          } else if (status === 0) {
             me.$message({
               message: '撤销成功，回到《未提交》',
               type: 'success'
             })
-            me.getTempData(1)
-          })
-          .catch(function () {
-            me.$message.error('提交错误请稍后再试')
-          })
-      }
+          } else if (status === 3) {
+            me.$message({
+              message: '下线成功',
+              type: 'success'
+            })
+          }
+
+          me.getTempData(1)
+        })
+        .catch(function() {
+          me.$message.error('提交错误请稍后再试')
+        })
     }
     // showInput() {
     //   this.inputVisible = true;
