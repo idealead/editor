@@ -83,7 +83,7 @@
 }
 .second-tab {
   border-bottom: none;
-  
+
 }
 
 .second-tab p {
@@ -148,7 +148,7 @@
 <script>
 // @ is an alias to /src
 import { mapState, mapActions, mapGetters } from 'vuex'
-import bus from "@/eventBus.js"
+import bus from '@/eventBus.js'
 export default {
   name: 'dcenter-left',
   data: function() {
@@ -158,31 +158,23 @@ export default {
     }
   },
   computed: {
-    ...mapState({
-      window_w: state => state.window_w,
-      window_h: state => state.window_h,
-      canvas_width: state => state.canvas_width,
-      canvas_height: state => state.canvas_height,
-      project_m_comp: state => state.project_m_comp,
-      user_type: state => state.user_type
-    })
   },
   created: function() {
-    const me = this;
+    // const me = this
   },
   methods: {
     toTab: function(index) {
-      const me = this;
+      const me = this
       me.$set(me, 'selectIndex', index)
       bus.$emit('dcenterRightC', index)
-      //提交事件给views designerCenter.vue
+      // 提交事件给views designerCenter.vue
     },
     designTab: function(index) {
-      const me = this;
+      const me = this
       me.$set(me, 'secondIndex', index)
       bus.$emit('myDesignIndex', index)
     }
-  },
+  }
 }
 
 </script>

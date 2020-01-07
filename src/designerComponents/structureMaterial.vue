@@ -2,10 +2,16 @@
   <div class="structureMaterial">
     <div class="structureNav">
       <el-tabs v-model="first" @tab-click="handleClick">
-        <el-tab-pane v-for="(item,index) in structureData" :label="item.data.framework_name" :name="`${item.data.id}`" :index="index" :key="index">{{item.data.framework_name}}</el-tab-pane>
+        <el-tab-pane
+          v-for="(item,index) in structureData"
+          :label="item.data.framework_name"
+          :name="`${item.data.id}`"
+          :index="index"
+          :key="index"
+        >{{item.data.framework_name}}</el-tab-pane>
         <!--     <el-tab-pane label="B2架构" name="second">B2架构</el-tab-pane>
     <el-tab-pane label="C3架构" name="third">C3架构</el-tab-pane>
-    <el-tab-pane label="D4架构" name="fourth">D4架构</el-tab-pane> -->
+        <el-tab-pane label="D4架构" name="fourth">D4架构</el-tab-pane>-->
       </el-tabs>
     </div>
     <div class="materialList" v-if="show">
@@ -13,15 +19,22 @@
         <el-tag>{{item.position_name}}：</el-tag>
         <div class="materialDiv">
           <div class="materialBlock" v-for="(it,index) in item.files" :key="index">
-            <div class="materialImg" :style="{backgroundImage:`url('${api.images}${it.file_path}')`}"></div>
+            <div
+              class="materialImg"
+              :style="{backgroundImage:`url('${api.images}${it.file_path}')`}"
+            ></div>
             <div class="materialBtnBlock">
               <!-- <div class="materialBtn" :fileid="it.id"><i class="el-icon-star-off "></i></div> -->
               <el-tooltip content="下载" placement="bottom" effect="light">
-              <div class="materialBtn" @click="donwloadF(img)"><i class="el-icon-download "></i></div>
-            </el-tooltip>
+                <div class="materialBtn" @click="donwloadF(img)">
+                  <i class="el-icon-download"></i>
+                </div>
+              </el-tooltip>
               <el-tooltip content="撤销" placement="bottom" effect="light">
-              <div class="materialBtn" @click="backF(item.files[index])"><i class="el-icon-refresh-left "></i></div>
-            </el-tooltip>
+                <div class="materialBtn" @click="backF(item.files[index])">
+                  <i class="el-icon-refresh-left"></i>
+                </div>
+              </el-tooltip>
             </div>
           </div>
           <div class="materialBlock" style="cursor:pointer" @click="addImgF(item)">
@@ -33,7 +46,15 @@
     </div>
     <div class="alertBg" v-if="addImg">
       <div class="layoutBlock">
-        <div v-for="(item,index) in myMaterial" :key="index" :style="{backgroundImage:'url('+item.url+')'}" @mouseover="hoverFunc(index)" @mouseleave="outFunc(index)" :class="{'zoom':item.hover,myMaterial:true,'selected':item.select}" @click="selectF(item,index)">
+        <div
+          v-for="(item,index) in myMaterial"
+          :key="index"
+          :style="{backgroundImage:'url('+item.url+')'}"
+          @mouseover="hoverFunc(index)"
+          @mouseleave="outFunc(index)"
+          :class="{'zoom':item.hover,myMaterial:true,'selected':item.select}"
+          @click="selectF(item,index)"
+        >
           <i class="el-icon-paperclip lock" v-show="item.status==3"></i>
         </div>
         <div class="setBtn">
@@ -60,12 +81,11 @@
   width: 100%;
   height: auto;
   box-sizing: border-box;
-
 }
 
 .materialList {
   width: 100%;
-  margin-top: 20px
+  margin-top: 20px;
 }
 
 .materialList el-tag {
@@ -122,7 +142,7 @@
   width: 50px;
   height: 100%;
   position: relative;
-  display: inline-block
+  display: inline-block;
 }
 
 .materialBtn i {
@@ -139,7 +159,7 @@
   position: fixed;
   left: 0;
   top: 0;
-  background-color: rgba(0, 0, 0, .5);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 9;
 }
 
@@ -161,7 +181,7 @@
 .addBtn {
   position: absolute;
   left: 20%;
-  bottom: 20px
+  bottom: 20px;
 }
 
 .cancelBtn {
@@ -208,19 +228,18 @@
   border: 1px solid rgb(66, 158, 253);
   background-size: 150%;
 }
-
 </style>
 <script>
 // @ is an alias to /src
 import { mapState, mapActions, mapGetters } from 'vuex'
-import bus from "@/eventBus.js"
+// import bus from "@/eventBus.js"
 import axios from 'axios'
 export default {
   name: 'structureMaterial',
   props: {
     structureD: {
       type: Array,
-      default: []
+      default: () => []
     }
   },
   data: function() {
@@ -229,27 +248,26 @@ export default {
       activeName: 'first',
       img: 'https://upload-images.jianshu.io/upload_images/2509688-d49b8f5bde26566d.jpeg?imageMogr2/auto-orient/strip|imageView2/2/w/640/format/webp',
       addImg: false,
-      structure_index:0,
-      structure_id:Number,//添加图片进入裂变区域，需要骨架id和，对应位置（数字，0开始）
-      structure_postion:Number,
-      select_file_id:Number,
-      myMaterial: [{
-        url: '',
-        hover: false,
-        select: false
-      }],
-      now_structureData:null,
-      show:false
+      structure_index: 0,
+      structure_id: Number, // 添加图片进入裂变区域，需要骨架id和，对应位置（数字，0开始）
+      structure_postion: Number,
+      select_file_id: Number,
+      myMaterial: [
+        {
+          url: '',
+          hover: false,
+          select: false
+        }
+      ],
+      now_structureData: null,
+      show: false
     }
   },
   computed: {
     ...mapState({
-      user_type: state => state.user_type,
-      user_data: state => state.user_data,
-      api: state =>state.api
+      api: state => state.api
     }),
     structureData: function() {
-      const me=this;
       return this.structureD
     },
     first: function() {
@@ -260,98 +278,96 @@ export default {
       }
     }
   },
-  beforeCreate:function(){
-    const me = this;
-   
-  },
+  // beforeCreate:function(){
+  //   const me = this;
+
+  // },
   created: function() {
-    const me = this;
-    //传递骨架数据，然后加入队列再显示
-    me.$set(me,'now_structureData',this.structureD[0])
-    setTimeout(()=>{
-      me.$set(me,'show',true)
-    },0)
-    
+    const me = this
+    // 传递骨架数据，然后加入队列再显示
+    me.$set(me, 'now_structureData', this.structureD[0])
+    setTimeout(() => {
+      me.$set(me, 'show', true)
+    }, 0)
   },
   mounted: function() {
-    const me = this;
-    //初始化index为0的骨架的数据，（每个位置的替换素材）
+    const me = this
+    // 初始化index为0的骨架的数据，（每个位置的替换素材）
     me.getStructureImg(0)
   },
   methods: {
-    backF:function(item){
-      const me=this;
+    backF: function(item) {
+      const me = this
       console.log(item)
       axios({
         method: 'post',
         url: me.api.del_framework_material,
-        data:{
-          id:item.id
+        data: {
+          id: item.id
         }
-      }).then(function(response) {
-        if (response.data.code == '200') {
-
-        }
-      }).catch(function(error) {
-
-      });
+      })
+        .then(function(response) {
+          if (response.data.code == '200') {
+          }
+        })
+        .catch(function(error) {})
     },
-    addBtn(){
-      //从我的素材添加图片进入 骨架替换区域
-      const me=this;
+    addBtn() {
+      // 从我的素材添加图片进入 骨架替换区域
+      const me = this
       axios({
         method: 'post',
         url: me.api.add_framework_material,
-        data:{
-          user_id:me.user_data.id,
-          material_id:me.select_file_id,
-          framework_id:me.structure_id,
-          position:me.structure_postion
+        data: {
+          user_id: me.user_data.id,
+          material_id: me.select_file_id,
+          framework_id: me.structure_id,
+          position: me.structure_postion
         }
-      }).then(function(response) {
-        console.log(response)
-        if (response.data.code == '200') {
-          me.$message({
-            message: '添加成功',
-            type: 'success'
-          });
-          me.$set(me, 'addImg', false)
-          me.getStructureImg(me.structure_index)
-        }
-      }).catch(function(error) {
-
-      });
+      })
+        .then(function(response) {
+          console.log(response)
+          if (response.data.code == '200') {
+            me.$message({
+              message: '添加成功',
+              type: 'success'
+            })
+            me.$set(me, 'addImg', false)
+            me.getStructureImg(me.structure_index)
+          }
+        })
+        .catch(function() {})
     },
     getStructureImg(index = 0) {
-      const me = this;
-      let sId = me.structureData[index].data.id;
+      const me = this
+      let sId = me.structureData[index].data.id
       axios({
         method: 'get',
         url: `${me.api.find_framework_info}?framework_id=${sId}`
-      }).then(function(response) {
-        if (response.status==200&&response.data.code == '200') {
-          me.$set(me,'now_structureData',response.data)
-        }
-      }).catch(function(error) {
-
-      });
+      })
+        .then(function(response) {
+          if (response.status == 200 && response.data.code == '200') {
+            me.$set(me, 'now_structureData', response.data)
+          }
+        })
+        .catch(function() {})
     },
     handleClick(tab, event) {
-      const me = this;
+      const me = this
       me.$set(me, 'structure_index', parseInt(tab.index))
       me.getStructureImg(me.structure_index)
     },
     addImgF: function(item) {
-      const me = this;
+      const me = this
       me.$set(me, 'addImg', true)
       me.$set(me, 'structure_id', item.framework_id)
       me.$set(me, 'structure_postion', item.position)
-      //请求我上传的图片
+      // 请求我上传的图片
       me.getImg()
       //
     },
     getImg: function() {
-      const me = this;
+      const me = this
       let id = me.user_data.id
       axios({
         method: 'post',
@@ -359,60 +375,60 @@ export default {
         data: {
           id: id
         }
-      }).then(function(response) {
-        if (response.data.code == '200') {
-          let imgA = response.data.data;
-          for (let i = 0; i < imgA.length; i++) {
-            imgA[i].hover = false;
-            imgA[i].select = false;
-            imgA[i].url = `${me.api.images}${imgA[i].path}`
+      })
+        .then(function(response) {
+          if (response.data.code == '200') {
+            let imgA = response.data.data
+            for (let i = 0; i < imgA.length; i++) {
+              imgA[i].hover = false
+              imgA[i].select = false
+              imgA[i].url = `${me.api.images}${imgA[i].path}`
+            }
+            me.$set(me, 'myMaterial', imgA)
           }
-          me.$set(me, 'myMaterial', imgA)
-        }
-      }).catch(function(error) {
-
-      });
+        })
+        .catch(function(error) {})
     },
     cancelBtn: function() {
-      const me = this;
+      const me = this
       me.$set(me, 'addImg', false)
     },
     hoverFunc: function(index) {
-      const me = this;
+      const me = this
       me.$set(me.myMaterial[index], 'hover', true)
     },
     outFunc: function(index) {
-      const me = this;
+      const me = this
       me.$set(me.myMaterial[index], 'hover', false)
     },
     selectF: function(item, index) {
-      const me = this;
+      const me = this
       if (item.status == 3) {
         me.$message({
-            message: '该图片已经被添加，锁定',
-            type: 'warning'
-          });
+          message: '该图片已经被添加，锁定',
+          type: 'warning'
+        })
       } else {
         for (let i = 0; i < me.myMaterial.length; i++) {
-          me.myMaterial[i].select = false;
+          me.myMaterial[i].select = false
         }
         me.$set(me.myMaterial[index], 'select', true)
         me.$set(me, 'select_file_id', item.id)
       }
-
     },
     donwloadF: function(imgsrc) {
-      fetch(imgsrc).then(res => res.blob().then(blob => {
-        var a = document.createElement('a');
-        var url = window.URL.createObjectURL(blob);
-        var filename = 'myImg.png';
-        a.href = url;
-        a.download = filename;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      }))
-    },
-  },
+      fetch(imgsrc).then(res =>
+        res.blob().then(blob => {
+          var a = document.createElement('a')
+          var url = window.URL.createObjectURL(blob)
+          var filename = 'myImg.png'
+          a.href = url
+          a.download = filename
+          a.click()
+          window.URL.revokeObjectURL(url)
+        })
+      )
+    }
+  }
 }
-
 </script>

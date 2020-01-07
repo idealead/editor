@@ -9,8 +9,8 @@ export default {
   resolve: null,
   reject: null,
   // promise功能的变量保存
-  window_w: 2500,
-  window_h: 2500,
+  window_w: 1500,
+  window_h: 1500,
   template_name: '',
   origin_preview_img: '',
   r_app: null,
@@ -79,6 +79,7 @@ export default {
   split: false,
   splitData: [],
   father_id: '', // 根模板id
+  defaultTextFamily: 'defaultSTSong',
   initData: function (data) {
     const me = this
     // 重置参数
@@ -136,13 +137,12 @@ export default {
     return new Promise(function (resolve, reject) {
       me.resolve = resolve
       me.reject = reject
-
       me.initData(data)
       me.tempId = parseInt(me.tempId)
       let condition = me.split ? 2 : 1 // 查询普通模板值为1，裂变专属模板值为2
       axios({
         method: 'post',
-        url: `http://ht.idealead.hbindex.com/api/template/find_template_by_id/template_id/${me.tempId}.html`,
+        url: `//ht.idealead.hbindex.com/api/template/find_template_by_id/template_id/${me.tempId}.html`,
         data: {
           condition: condition
         },
@@ -167,6 +167,8 @@ export default {
         me.canvas_height = me.expand ? parseInt(data.height) : parseInt(response.data.data.template_height)
         me.template_name = response.data.data.template_name
         me.origin_preview_img = response.data.data.preview_img
+        // 设置根id
+        me.father_id = response.data.data.father_id
         // 执行方法
         me.initPixiApp()
       }).catch(function (error) {
@@ -195,7 +197,6 @@ export default {
     rectangle.endFill()
     rectangle.position.set(0, 0)
     me.r_app.stage.addChild(rectangle)
-
     // 执行方法
     me.renderTemplate()
   },
@@ -227,9 +228,9 @@ export default {
                 width: null,
                 height: null
               }
-              // size.width 应该为缩放后的大小，不一定是原大小
-              originMian.width = data[i].children[0].ass_children[k].size.width
-              originMian.height = data[i].children[0].ass_children[k].size.height
+              // size.width 应该为缩放后的大小，不一定是原大小，最小200*200
+              originMian.width = data[i].children[0].ass_children[k].size.width < 200 ? 200 : data[i].children[0].ass_children[k].size.width
+              originMian.height = data[i].children[0].ass_children[k].size.height < 200 ? 200 : data[i].children[0].ass_children[k].size.height
               me.originMian_obj[`${data[i].children[0].ass_children[k].id}`] = originMian
             }
             src_from = me.changeMain
@@ -265,7 +266,7 @@ export default {
         // 获取模板中的字体，进行加载
         if (data[i].children[0].ass_children[k].type == 'text') {
           let thistext_obj = data[i].children[0].ass_children[k]
-          if (thistext_obj.style.fontFamily == 'st') {
+          if (me.defaultTextFamily.includes(thistext_obj.style.fontFamily)) {
             continue
           }
           font_family[`${thistext_obj.style.fontFamily}`] =
@@ -274,62 +275,102 @@ export default {
         }
       }
     }
-    if (Object.keys(font_family).length === 0) {
-      img_src = Array.from(new Set(img_src))
-      me.originImg(originMainImg, function () {
-        me.r_app.loader.add(img_src, {
-          crossOrigin: true
-        }).load(function () {
+    img_src = Array.from(new Set(img_src))
+    me.originImg(originMainImg, function () {
+      me.r_app.loader.add(img_src, {
+        crossOrigin: true
+      }).load(function () {
+        // 图片加载完毕，开始加载字体
+        if (Object.keys(font_family).length === 0) {
           me.renderF(data)
-        })
-      })
-      return false
-    }
-    // 字体加载
-    me.getAllfontFamily(font_family)
-      .then(function (res) {
-        // 加载css文件，从而自动加载woff文件
-        for (let i = 0; i < res.length; i++) {
-          if (res[i].data.code !== 1) continue
-          axios
-            .all(me.getCssWoff(res[i].data.path, res[i].data.woffPath))
-            .then(function (response) {
-              // 下方的linkcss，以及字体的加载读缓存就好了。
-              me.dynamicLoadCss('http://font.idealead.hbindex.com' + res[i].data.path)
-              if (i + 1 >= res.length) {
-                setTimeout(() => {
-                  // 字体加载完毕回调
-                  img_src = Array.from(new Set(img_src))
-                  me.originImg(originMainImg, function () {
-                    me.r_app.loader.add(img_src, {
-                      crossOrigin: true
-                    }).load(function () {
-                      me.renderF(data)
-                    })
-                  })
-                }, 20)
-              }
-            })
-            .catch(err => {
-              me.reject(err)
-            })
+        } else {
+          // 字体加载
+          me.getfontFamilyBack(font_family).then(() => {
+            setTimeout(() => {
+              me.renderF(data)
+            }, 50)
+          }).catch(err => {
+            me.reject(err)
+          })
         }
       })
-      .catch(function (err) {
-        me.reject(err)
-      })
+    })
+    // if (Object.keys(font_family).length === 0) {
+    //   img_src = Array.from(new Set(img_src))
+    //   me.originImg(originMainImg, function () {
+    //     me.r_app.loader.add(img_src, {
+    //       crossOrigin: true
+    //     }).load(function () {
+    //       me.renderF(data)
+    //     })
+    //   })
+    //   return false
+    // }
+    // // 字体加载
+    // me.getfontFamilyBack(font_family).then(() => {
+    //   setTimeout(() => {
+    //     // 字体加载完毕回调
+    //     img_src = Array.from(new Set(img_src))
+    //     me.originImg(originMainImg, function () {
+    //       me.r_app.loader.add(img_src, {
+    //         crossOrigin: true
+    //       }).load(function () {
+    //         me.renderF(data)
+    //       })
+    //     })
+    //   }, 50)
+    // }).catch(err => {
+    //   me.reject(err)
+    // })
+  },
+  getfontFamilyBack: function (font_family) {
+    const me = this
+    return new Promise(function (resolve, reject) {
+      me.getAllfontFamily(font_family)
+        .then(function (res) {
+          if (res === 'stf') {
+            resolve()
+            return false
+          }
+          let aarr = []
+          // 加载css文件，从而自动加载woff文件
+          for (let i = 0; i < res.length; i++) {
+            if (res[i].data.code !== 1) continue
+            aarr = [...aarr, ...me.getCssWoff(res[i].data.path, res[i].data.woffPath)]
+            me.dynamicLoadCss('//font.idealead.hbindex.com' + res[i].data.path)
+          }
+          axios
+            .all(aarr)
+            .then(function (response) {
+              // 下方的linkcss，以及字体的加载读缓存就好了。
+              setTimeout(() => {
+                // 字体加载完毕回调
+                resolve()
+              }, 200)
+            })
+            .catch(res => {
+              reject(res)
+            })
+        })
+        .catch(res => {
+          reject(res)
+        })
+    })
   },
   getCssWoff: function (cssPath, woffPath) {
     // const me = this
     return [
       axios({
+        headers: {
+          'Accept': 'text/css,*/*;q=0.1'
+        },
         method: 'get',
-        url: `http://font.idealead.hbindex.com${cssPath}?my_flag=1`,
+        url: `//font.idealead.hbindex.com${cssPath}?my_flag=1`,
         responseType: 'ms-stream'
       }),
       axios({
         method: 'get',
-        url: `http://font.idealead.hbindex.com${woffPath}?my_flag=1`,
+        url: `//font.idealead.hbindex.com${woffPath}`,
         responseType: 'ms-stream'
       })
     ]
@@ -339,14 +380,14 @@ export default {
     var link = document.createElement('link')
     link.type = 'text/css'
     link.rel = 'stylesheet'
-    link.href = url
+    link.href = `${url}?my_flag=1`
     head.appendChild(link)
   },
   fontPost: function (data) {
     // const me = this
     // id为1则表示，是用户端，模板列表渲染使用的字体剪切
     let postD = {
-      id: 1,
+      user_id: 1,
       font_name: data.font_name,
       text: data.text,
       my_flag: 1
@@ -354,7 +395,7 @@ export default {
     // 压缩字体接口函数
     return axios({
       method: 'post',
-      url: 'http://papi.idealead.hbindex.com/cutFont',
+      url: '//papi.idealead.hbindex.com/cutFont',
       data: postD,
       headers: { 'my_flag': '1' }
     })
@@ -363,12 +404,14 @@ export default {
     const me = this
     let allArr = []
     for (let key in font_family) {
-      allArr.push(
-        me.fontPost({
-          font_name: `${key}`,
-          text: font_family[key]
-        })
-      )
+      if (!me.defaultTextFamily.includes(key)) {
+        allArr.push(
+          me.fontPost({
+            font_name: `${key}`,
+            text: font_family[key]
+          })
+        )
+      }
     }
     return axios.all(allArr)
   },
@@ -402,11 +445,13 @@ export default {
     // 判断有没有弧形文字，渲染弧形文字,弧形单个文字只用于预览图，简单渲染******************************************************************************************************************************
     if (me.arc_title && me.arc_titleImg) {
       let wordArr = me.arc_title.text.split('')
-      me.renderARC('arc_title', wordArr)
+      let textReplace = typeof (me.arc_title.textReplace) === 'number' ? me.arc_title.textReplace : null
+      me.renderARC('arc_title', wordArr, textReplace)
     }
     if (me.arc_subtitle && me.arc_subtitleImg) {
       let wordArr = me.arc_subtitle.text.split('')
-      me.renderARC('arc_subtitle', wordArr)
+      let textReplace = typeof (me.arc_subtitle.textReplace) === 'number' ? me.arc_subtitle.textReplace : null
+      me.renderARC('arc_subtitle', wordArr, textReplace)
     }
     // 判断有没有弧形文字，渲染弧形文字********************************************************************************************************************************
     me.renderStage()
@@ -422,14 +467,17 @@ export default {
       }
     }
     let keys_arr = Object.keys(ass_arr_obj)
-    for (let l = 0; l < keys_arr.length; l++) {
-      let key = keys_arr[l]
-      me.ctrl_arr = ass_arr_obj[key]
-      me.createAssociation(key, ass_arr_obj[key][0].m_comp_name, true)
+    if (keys_arr.length > 0) {
+      for (let l = 0; l < keys_arr.length; l++) {
+        let key = keys_arr[l]
+        me.ctrl_arr = ass_arr_obj[key]
+        me.createAssociation(key, ass_arr_obj[key][0].m_comp_name, true)
+      }
+      // 渲染
+      me.renderStage()
+      if (me.ctrl_arr) me.ctrl_arr.length = 0
     }
-    // 渲染
-    me.renderStage()
-    if (me.ctrl_arr) me.ctrl_arr.length = 0
+
     // 存储进活动日志
     me.pushActiveLog(true)
     setTimeout(() => {
@@ -447,7 +495,7 @@ export default {
       return [replaceData[0].file_id, replaceData[0].src]
     }
   },
-  renderARC: function (titleType, wordArr) {
+  renderARC: function (titleType, wordArr, textReplace) {
     const me = this
     let setData = null
     let imgSetData = null
@@ -517,6 +565,7 @@ export default {
       newD.text = mtext
       newD.rotation = newDeg
       newD.role = 'normal'
+      newD.textReplace = textReplace
       me.newContainerText(newD, true, true)// 渲染后的弧形文字不保存进入日志，所以不会留下数据
     }
   },
@@ -541,8 +590,8 @@ export default {
               width: 0,
               height: 0
             }
-            me.originMian_obj.normal.width = sprite.width
-            me.originMian_obj.normal.height = sprite.height
+            me.originMian_obj.normal.width = sprite.width < 200 ? 200 : sprite.width
+            me.originMian_obj.normal.height = sprite.height < 200 ? 200 : sprite.height
             callback()
           }
         })
@@ -705,6 +754,17 @@ export default {
     sprite.m_comp_name = set_data.m_comp_name
     sprite.lock = false
     sprite.role = 'normal'
+    // 倾斜功能
+    if (set_data.skew) {
+      sprite.skew.set(set_data.skew.x, set_data.skew.y)
+    }
+    if (typeof (set_data.hueNumber) === 'number') {
+      sprite.hueNumber = set_data.hueNumber
+      set_data.hueNumber *= 360
+      let filter = new PIXI.filters.ColorMatrixFilter()
+      filter.hue(set_data.hueNumber, true)
+      sprite.filters = [filter]
+    }
     if (render_add) {
       sprite.rotation = set_data.rotation
       sprite.rotation_num = set_data.rotation
@@ -716,15 +776,23 @@ export default {
     // 替换
     if (sprite.role == 'logo' && me.changeLogo) {
       if (sprite.width >= sprite.height) {
-        if (sprite.width > 300) sprite.scale.set(300 / sprite.width)
+        // 扁的logo
+        if (sprite.width > set_data.size.width) {
+          let wr = set_data.size.width < 50 ? 50 : set_data.size.width
+          sprite.scale.set(wr / sprite.width)
+        }
       } else {
-        if (sprite.height > 300) sprite.scale.set(300 / sprite.height)
+        // 竖一些的logo
+        if (sprite.height > set_data.size.height) {
+          let hr = set_data.size.height < 70 ? 70 : set_data.size.height
+          sprite.scale.set(hr / sprite.height)
+        }
       }
     } else if (sprite.role == 'main' && me.originMian_obj[`${set_data.id}`]) {
       let o_ratio = me.originMian_obj[`${set_data.id}`].width / me.originMian_obj[`${set_data.id}`].height
       let n_ratio = sprite.originalw / sprite.originalh
       if (n_ratio >= o_ratio) {
-        sprite.scale.set((me.originMian_obj[`${set_data.id}`].width / sprite.originalw) + 1)
+        sprite.scale.set(me.originMian_obj[`${set_data.id}`].width / sprite.originalw)
       } else {
         sprite.scale.set(me.originMian_obj[`${set_data.id}`].height / sprite.originalh)
       }
@@ -754,42 +822,10 @@ export default {
     } else {
       me.container_arr[me.findCont(set_data.id)].cont.addChild(sprite)
     }
-
-    // if (!render_add) {
-    //   me.renderStage()
-    //   //在图层面板增加图层
-    //   //激活当前选中状态
-    //   me.in_move = sprite
-    //   me.containerLine(me.in_move, false);
-    //   me.showEdit(me.in_move.type)
-    //   //图层面板监听
-    // }
   },
   addText: function (set_data, render_add, saveLog) {
     const me = this
     let richText = null
-    // let style = {
-    //   fontFamily: '思源黑体',
-    //   fontSize: 50,
-    //   lineHeight: 60,
-    //   fontStyle: 'normal',
-    //   fontWeight: 'normal',
-    //   fill: '#000',
-    //   stroke: '#000',
-    //   strokeThickness: 0,
-    //   dropShadow: false,
-    //   dropShadowColor: '#000000',
-    //   dropShadowAngle: Math.PI / 6,
-    //   dropShadowBlur: 0,
-    //   dropShadowDistance: 18,
-    //   wordWrap: true,
-    //   wordWrapWidth: 400,
-    //   breakWords: true,
-    //   padding: 0,
-    //   textBaseline: 'Middle',
-    //   trim: false,
-    //   whiteSpace: 'pre'
-    // }
     // 扩展骨架A竖版：******************************************************************************************************************************//
     if (me.expand) {
       let saveSize = false
@@ -856,6 +892,26 @@ export default {
     richText.m_comp_name = set_data.m_comp_name
     richText.lock = false
     richText.role = 'normal'
+    // 倾斜功能
+    if (set_data.skew) {
+      richText.skew.set(set_data.skew.x, set_data.skew.y)
+    }
+    // 文案替换功能
+    if (typeof (set_data.textReplace) === 'number') {
+      richText.textReplace = set_data.textReplace
+    }
+    // 文本倒序
+    if (set_data.textReverse) {
+      richText.textReverse = true
+    }
+    // 色相功能
+    if (typeof (set_data.hueNumber) === 'number') {
+      richText.hueNumber = set_data.hueNumber
+      set_data.hueNumber *= 360
+      let filter = new me.mypixi.filters.ColorMatrixFilter()
+      filter.hue(set_data.hueNumber, true)
+      richText.filters = [filter]
+    }
     if (render_add) {
       richText.rotation = set_data.rotation
       richText.rotation_num = set_data.rotation
@@ -1039,7 +1095,8 @@ export default {
       text: '',
       style: {},
       alpha: 1,
-      size: {}
+      size: {},
+      skew: {}
     }
     let log_data = []
     let data = {}
@@ -1071,7 +1128,7 @@ export default {
           } else if (obj.type == 'text') {
             element_data.type = 'text'
             let style = {
-              fontFamily: 'st',
+              fontFamily: 'default',
               fontSize: 50,
               lineHeight: 60,
               fontStyle: 'normal',
@@ -1092,7 +1149,8 @@ export default {
               trim: false,
               whiteSpace: 'normal',
               leading: 0,
-              letterSpacing: 0
+              letterSpacing: 0,
+              align: 'left'
             }
             for (let key in style) {
               style[key] = obj.style[key]
@@ -1102,6 +1160,7 @@ export default {
             element_data.text = obj.text
             element_data.size.width = obj.width
             element_data.size.height = obj.height
+            element_data.textReplace = obj.textReplace
           }
           element_data.id = obj.name
           element_data.rotation = obj.rotation
@@ -1110,6 +1169,11 @@ export default {
           element_data.position.y = obj.parent.y
           element_data.alpha = obj.alpha
           element_data.role = obj.role
+          element_data.skew = {
+            x: obj.skew.x,
+            y: obj.skew.y
+          }
+          element_data.hueNumber = obj.hueNumber || 0
           data.children[0].ass_children.push(element_data)
         }
         if (i == me.container_arr.length - 1) {
@@ -1132,64 +1196,6 @@ export default {
     }).catch((res) => {
       me.reject(res)
     })
-    // for (let i = 0; i < last.length; i++) {
-    //   (function(i) {
-    //     let material_children = {};
-    //     if (last[i].children[0].ass_children.length == 1) {
-    //       //单个图片或者文字
-    //       if (last[i].children[0].ass_children[0].type == 'image') {
-    //         material_children.material_type = 'img';
-    //         material_children.file_id = JSON.stringify([parseInt(last[i].children[0].ass_children[0].file_id)]);
-    //         material_children.author = '1';
-    //         material_children.preview = parseInt(last[i].children[0].ass_children[0].file_id);
-    //         material_children.content = JSON.stringify(last[i])
-    //       } else if (last[i].children[0].ass_children[0].type == 'text') {
-    //         material_children['material_type'] = 'text';
-    //         material_children['author'] = '1';
-    //         material_children['dimension_id'] = 0
-    //         material_children['content'] = JSON.stringify(last[i]);
-    //         material_children['text_content'] = last[i].children[0].ass_children[0].text;
-    //       }
-    //       material_data.push(material_children)
-    //     } else if (last[i].children[0].ass_children.length > 1) {
-    //       let file_id = [];
-    //       for (let k = 0; k < last[i].children[0].ass_children.length; k++) {
-    //         if (last[i].children[0].ass_children[k].type == 'image') {
-    //           file_id.push(last[i].children[0].ass_children[k].file_id)
-    //         }
-    //       }
-    //       material_children.material_type = 'whole';
-    //       material_children.file_id = JSON.stringify(file_id);
-    //       material_children.author = '1';
-    //       //idToimg,上传组合预览图
-    //       tempF.addACtrlarr.bind(me)(file_id[0]);
-    //       let file = tempF.toImage.bind(me)(tempF, true)
-    //       let formdata = new FormData();
-    //       formdata.append('upload_file_once', file)
-    //       axios({
-    //         method: 'post',
-    //         url: 'http://dev.cyrd.gdinsight.com/api/files/upload_file_once/author_id/1.html',
-    //         data: formdata
-    //       }).then(function(response) {
-    //         material_children.preview = response.data.data.file_id
-    //         material_children.content = JSON.stringify(last[i]);
-    //         material_data.push(material_children)
-    //         if (material_data.length == last.length && !uploadM) {
-    //           //上传素材
-    //           uploadM = true;
-    //           tempF.uploadMaterial.bind(me)(tempF, mould_name, material_data, callback)
-    //         }
-    //       }).catch(function(error) {
-    //         console.log(error);
-    //       });
-    //     }
-    //     if (i == last.length - 1 && material_data.length == last.length && !uploadM) {
-    //       //上传素材
-    //       uploadM = true;
-    //       tempF.uploadMaterial.bind(me)(tempF, mould_name, material_data, callback)
-    //     }
-    //   })(i)
-    // }
   },
   getMaterialData: function (last) {
     const me = this
@@ -1236,7 +1242,7 @@ export default {
         formdata.append('upload_file_once', file)
         axios({
           method: 'post',
-          url: 'http://ht.idealead.hbindex.com/api/files/upload_file_once/author_id/1.html',
+          url: '//ht.idealead.hbindex.com/api/files/upload_file_once/author_id/1.html',
           data: formdata,
           headers: { 'my_flag': '1' }
         }).then(function (response) {
@@ -1244,7 +1250,6 @@ export default {
           material_children.content = JSON.stringify(last)
           resolve(material_children)
         }).catch(function (error) {
-          console.log(error)
           me.reject(error)
         })
       }
@@ -1339,28 +1344,6 @@ export default {
     const me = this
     // 上传素材
     me.material_id.length = 0
-    // for (let j = 0; j < material_data.length; j++) {
-    //   (function(j) {
-    //     axios.post('http://dev.cyrd.gdinsight.com/api/material/upload_material.html', material_data[j]).then(function(response) {
-    //       //获得素材id
-    //       // console.log('返回素材id,第' + j + '个' + parseInt(response.data.data.materialId))
-    //       material_id_obj[`a${j}`] = parseInt(response.data.data.materialId)
-    //       let m_length = Object.keys(material_id_obj)
-    //       if (m_length.length == material_data.length) {
-    //         for (let z = 0; z < material_data.length; z++) {
-    //           material_id.push(material_id_obj[`a${z}`])
-    //         }
-    //       }
-    //       if (material_id.length == material_data.length) {
-    //         console.log('material_id' + material_id)
-    //         me.uploadTemp(tempF, mould_name, material_id, callback)
-    //       }
-    //     }).catch(function(error) {
-    //       console.log(error);
-    //     });
-    //   })(j)
-    // }
-    // 测试promise
     me.uploadAllMaterial(material_data).then(function (res) {
       // 获取元素id，用于上传模板
       for (let i = 0; i < res.length; i++) {
@@ -1374,7 +1357,7 @@ export default {
   uploadMF: function (data) {
     return axios({
       method: 'post',
-      url: 'http://ht.idealead.hbindex.com/api/material/upload_material.html',
+      url: '//ht.idealead.hbindex.com/api/material/upload_material.html',
       data: data,
       headers: { 'my_flag': '1' }
     })
@@ -1392,7 +1375,7 @@ export default {
     const me = this
     return axios({
       method: 'post',
-      url: 'http://ht.idealead.hbindex.com/api/files/upload_file_once/author_id/1.html',
+      url: '//ht.idealead.hbindex.com/api/files/upload_file_once/author_id/1.html',
       data: formdata,
       headers: { 'my_flag': '1' }
     }).then(function (response) {
@@ -1403,7 +1386,7 @@ export default {
   },
   axiosTempF: function (response, funcData) {
     const me = this
-    // 分为用户模板保存，设计师模板保存，渲染临时模板保存
+    // 分为用户模板保存，渲染临时模板保存
     let tempData = {
       preview: response.data.data.file_id,
       author: 1,
@@ -1413,13 +1396,13 @@ export default {
       t_width: me.canvas_width,
       t_height: me.canvas_height,
       level: 'temporary',
-      father_id: me.tempId
+      father_id: me.father_id
     }
     // 用户修改的模板绑定根id
     // 有素材集，模板预览图id，模板名称，用户id，可以真正上传模板了
     axios({
       method: 'post',
-      url: 'http://ht.idealead.hbindex.com/api/template/upload_template.html',
+      url: '//ht.idealead.hbindex.com/api/template/upload_template.html',
       data: tempData,
       headers: { 'my_flag': '1' }
     }).then(function (res) {
@@ -1448,7 +1431,7 @@ export default {
     // let preview = ''
     let img = null
     // tempF.downloadImg.bind(me)(r_app.renderer.plugins.extract.base64(r_app.stage))
-    me.ClippingImage(me.r_app.renderer.plugins.extract.base64(me.r_app.stage, 'image/jpeg', 0.9), me.canvas_width, me.canvas_height, 0.4, function (base64Result) {
+    me.ClippingImage(me.r_app.renderer.plugins.extract.base64(me.r_app.stage, 'image/jpeg', 1), me.canvas_width, me.canvas_height, 0.9, function (base64Result) {
       // me.downloadImg(base64Result)
       // 图片转文件，上传文件，拿回文件id
       img = me.dataURLtoFile(base64Result, 'mould.jpg')

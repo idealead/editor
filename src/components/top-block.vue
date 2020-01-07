@@ -1,18 +1,55 @@
 <template>
   <div class="top_block">
-    <img class="insight_logo" @click="backToList(false,'http://ht.idealead.hbindex.com/html/design/#/')" src="../assets/insight_logo.png"/>
-    <p class="project_name" v-show="$router.currentRoute.path=='/canvas'">项目名称：<input type="text" name="" v-model="set_mould_name" @change="mouldNameChange" :placeholder="mould_name"></p>
+    <img
+      class="insight_logo"
+      @click="backToList(false,'http://ht.idealead.hbindex.com/html/design/#/cover')"
+      src="../assets/logo.png"
+    />
+    <p class="project_name" v-show="$router.currentRoute.path=='/canvas'">
+      项目名称：
+      <input
+        type="text"
+        name
+        v-model="set_mould_name"
+        @change="mouldNameChange"
+        :placeholder="mould_name"
+      />
+    </p>
     <div class="user_block">
-      <el-tooltip class="item" effect="light" :content="saveMsg" placement="bottom" popper-class="tip" :manual="true" :value="tipSaveError">
-        <div class="save_btn" @click="save(false)" :class="{'saved_btn':saved,'btn_click':save_click}" v-show="$router.currentRoute.path=='/canvas'">{{saved?'已保存':'保 存'}}</div>
+      <el-tooltip
+        class="item"
+        effect="light"
+        :content="saveMsg"
+        placement="bottom"
+        popper-class="tip"
+        :manual="true"
+        :value="tipSaveError"
+      >
+        <div
+          class="save_btn"
+          @click="save(false)"
+          :class="{'saved_btn':saved,'btn_click':save_click}"
+          v-show="$router.currentRoute.path=='/canvas'"
+        >{{saved?'已保存':'保 存'}}</div>
       </el-tooltip>
       <!-- <div class="save_btn" @click="backToList(false,'')">返回列表</div> -->
-      <el-tooltip class="item" effect="light" :content="'已保存 '+mould_name+' 模板，可前往个人中心查看'" placement="bottom" popper-class="tip" :manual="true" :value="tipShow">
-        <div class="user_head" v-bind:style="{backgroundImage:'url('+head+')'}" @click="toUserCenter">
-        </div>
+      <el-tooltip
+        class="item"
+        effect="light"
+        :content="'已保存 '+mould_name+' 模板，可前往个人中心查看'"
+        placement="bottom"
+        popper-class="tip"
+        :manual="true"
+        :value="tipShow"
+      >
+        <div
+          class="user_head"
+          v-bind:style="{backgroundImage:'url('+head+')'}"
+          @click="toUserCenter()"
+        ></div>
       </el-tooltip>
-      <div class="user_name">{{user_name?user_name:'梁津建'}}</div>
-      <div class="logout" @click="logout">退出登录</div>
+      <div class="user_name">{{name?name:'用户'}}</div>
+      <div class="logout" @click="logout">{{user_type=='designer'?'退出登录':''}}</div>
     </div>
     <div class="alert_mask" v-if="alert_show">
       <div class="alert">
@@ -25,14 +62,30 @@
   </div>
 </template>
 <style type="text/css" scoped>
+.addPop_close {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  right: -13px;
+  top: -13px;
+  background-image: url('../assets/canvas/addPop_close.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  cursor: pointer;
+  transition: background-image 0.5s;
+}
+
+.addPop_close:hover {
+  background-image: url('../assets/canvas/addPop_close_active.png');
+}
 .alert_mask {
   width: 100%;
   height: 3000px;
-  background-color: rgba(0, 0, 0, .2);
+  background-color: rgba(0, 0, 0, 0.2);
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 19
+  z-index: 19;
 }
 
 .alert .alertBtn {
@@ -54,11 +107,11 @@
 }
 
 .alert .sure {
-  transform: translateX(calc(-50% - 65px))
+  transform: translateX(calc(-50% - 65px));
 }
 
 .alert .not {
-  transform: translateX(calc(-50% + 65px))
+  transform: translateX(calc(-50% + 65px));
 }
 
 .alert p {
@@ -92,14 +145,14 @@
   width: 100%;
   height: 8.2vh;
   top: 0;
-  -moz-box-shadow: 3px 3px 5px rgba(0, 0, 0, .1);
+  -moz-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
   /* 老的 Firefox */
-  box-shadow: 3px 3px 5px rgba(0, 0, 0, .1);
+  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
   z-index: 99;
 }
 
 .insight_logo {
-  width: 12.19vw;
+  width: 8.3vw;
   position: absolute;
   top: 50%;
   left: 40px;
@@ -108,7 +161,7 @@
   /*   background-image: url('../assets/insight_logo.png');
   background-size: contain;
   background-repeat: no-repeat; */
-  cursor: pointer
+  cursor: pointer;
 }
 
 .project_name {
@@ -121,7 +174,7 @@
   top: 50%;
   transform: translateY(-50%);
   -webkit-transform: translateY(-50%);
-  left: 350px;
+  left: 330px;
 }
 
 .project_name input {
@@ -159,16 +212,16 @@
 }
 
 .btn_click {
-  animation: click .5s
+  animation: click 0.5s;
 }
 
 @keyframes click {
   50% {
-    transform: scale(.94)
+    transform: scale(0.94);
   }
 
   100% {
-    transform: scale(1)
+    transform: scale(1);
   }
 }
 
@@ -198,12 +251,12 @@
   color: #333;
   display: inline-block;
   vertical-align: top;
-  font-family: 'SiYuan'
+  font-family: 'SiYuan';
 }
-
-
+.logout{
+  min-width: 40px
+}
 @media only screen and (max-width: 1600px) and (min-width: 1280px) {
-
   .user_name,
   .logout,
   .save_btn {
@@ -212,7 +265,6 @@
 }
 
 @media only screen and (max-width: 1280px) and (min-width: 960px) {
-
   .user_name,
   .logout,
   .save_btn {
@@ -221,7 +273,6 @@
 }
 
 @media only screen and (max-width: 960px) {
-
   .user_name,
   .logout,
   .save_btn {
@@ -283,15 +334,14 @@
   margin-left: 25px;
   cursor: pointer;
 }
-
 </style>
 <script type="text/javascript">
 import { mapState, mapActions, mapGetters } from 'vuex'
-import bus from "@/eventBus.js"
+import bus from '@/eventBus.js'
 export default {
   name: 'top-block',
   props: {
-    msg: String, //例子
+    msg: String // 例子
   },
   data: function() {
     return {
@@ -302,40 +352,41 @@ export default {
       tipSaveError: false,
       saveMsg: '系统繁忙，保存失败',
       jump_link: '',
-      save_click: false,
-      set_mould_name: ''
+      save_click: false
     }
   },
   created: function() {
-    const me = this;
-    bus.$on('mould_change', function() {
+    const me = this
+    bus.$off('mould_change').$on('mould_change', function() {
       me.$set(me, 'saved', false)
     })
-    bus.$on('clientSave', function() {
+    bus.$off('clientSave').$on('clientSave', function() {
       me.clientSave()
     })
-    bus.$on('designerSave', function() {
+    bus.$off('designerSave').$on('designerSave', function() {
       me.designerSave()
     })
-    bus.$on('saveError', function() {
+    bus.$off('saveError').$on('saveError', function() {
       me.saveError()
     })
   },
   computed: {
     ...mapState({
-      window_w: state => state.window_w,
-      window_h: state => state.window_h,
-      canvas_width: state => state.canvas_width,
-      canvas_height: state => state.canvas_height,
-      project_m_comp: state => state.project_m_comp,
-      user_type: state => state.user_type,
-      mould_name: state => state.mould_name,
-      user_name: state => state.user_data.user_nickname
-    })
+      user_type: state => state.user.user_type,
+      mould_name: state => state.homeCanvas.mould_name,
+      name: state => state.user.user_data.name,
+      user_data: state => state.user.user_data
+    }),
+    set_mould_name: function() {
+      return this.mould_name
+    },
+    clientCenter: function() {
+      return `http://ht.idealead.hbindex.com/html/design/#/personal/edited?user_id=${this.user_data.id}`
+    }
   },
   methods: {
     save: function(leave, link) {
-      const me = this;
+      const me = this
       me.$set(me, 'save_click', true)
       setTimeout(() => {
         me.$set(me, 'save_click', false)
@@ -347,7 +398,7 @@ export default {
       }
     },
     designerSave: function() {
-      const me = this;
+      const me = this
       me.$set(me, 'saveMsg', '模板保存成功')
       me.$set(me, 'saved', true)
       me.$set(me, 'tipSaveError', true)
@@ -356,15 +407,16 @@ export default {
       }, 3000)
     },
     clientSave: function() {
-      const me = this;
+      const me = this
       me.$set(me, 'saved', true)
       me.$set(me, 'tipShow', true)
       setTimeout(() => {
         me.$set(me, 'tipShow', false)
-      }, 3000)
+        window.location.href = me.clientCenter
+      }, 2000)
     },
     saveError: function() {
-      const me = this;
+      const me = this
       me.$set(me, 'saveMsg', '系统繁忙，保存失败')
       me.$set(me, 'tipSaveError', true)
       setTimeout(() => {
@@ -372,50 +424,52 @@ export default {
       }, 3000)
     },
     alert_close: function(leave, link) {
-      const me = this;
+      const me = this
       me.$set(me, 'alert_show', false)
       if (leave) {
-        window.location.href = link;
+        window.location.href = link
       }
     },
     backToList: function(direct = false, link) {
-      const me = this;
+      const me = this
+      if (me.$route.path.search('canvas') === -1) {
+        window.location.href = link
+      }
       if (!me.saved && !direct) {
-        //离开
+        // 离开
         me.$set(me, 'alert_show', true)
         me.$set(me, 'jump_link', link)
       } else if (!me.saved && direct) {
-        //保存并跳转
+        // 保存并跳转
         me.$set(me, 'alert_show', false)
         let leave = true
         me.save(leave, link)
       } else if (!direct && me.saved) {
-        window.location.href = link;
+        window.location.href = link
       }
     },
     toUserCenter: function() {
       const me = this
       if (me.user_type == 'client') {
-        me.backToList(false, 'http://ht.idealead.hbindex.com/html/design/#/personal')
+        me.backToList(false, me.clientCenter)
       } else {
         me.$router.push({ path: '/designerCenter' })
       }
     },
-    mouldNameChange: function(value) {
+    mouldNameChange: function(e) {
       const me = this
-      me.$store.dispatch("ChangeRenderFunc", { key: 'mould_name', value: me.set_mould_name });
+      me.$store.dispatch('ChangeRenderFunc', { key: 'mould_name', value: e.target.value })
     },
     logout: function() {
-      const me = this;
+      const me = this
       if (me.user_type == 'designer') {
-        //退出登录
+        // 退出登录
         // localStorage.setItem("userData", JSON.stringify({ id: '' }))
-        localStorage.removeItem("userData")
+        localStorage.removeItem('userData')
         me.$router.push({ path: '/login' })
-        me.$store.dispatch("changeUserDataFunc", {id:''})
+        me.$store.dispatch('changeUserDataFunc', { id: '' })
       }
     }
   }
-};
-
+}
 </script>

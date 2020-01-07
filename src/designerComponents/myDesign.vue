@@ -1,6 +1,9 @@
 <template>
   <div class="myDesign">
-    <h2>{{pageIndex==0?'未提交':''}}{{pageIndex==1?'已提交':''}}</h2>
+    <h2>
+      {{pageIndex==0?'未提交':''}}{{pageIndex==1?'已提交':''}}
+      <span>{{projectArr.length}}</span>
+    </h2>
     <div class="designArea">
       <div
         class="designProject"
@@ -19,8 +22,11 @@
           <p class="projectState" v-if="pageIndex==1">审核通过</p>
           <div v-if="pageIndex==1" class="blockBtn">
             <div class="designBtn" @click="showTagFunc(true,index)">设置标签</div>
-            <div class="designBtn" @click="online(item.id,item.status)">{{item.status==3?'上线':'撤回'}}</div>
-            <div class="designBtn" v-if="item.status==3">删除</div>
+            <div
+              class="designBtn"
+              @click="online(item.id,item.status==3?1:3)"
+            >{{item.status==3?'上线':'下线'}}</div>
+            <div class="designBtn" v-if="item.status==3" @click="online(item.id,0)">撤回提交</div>
           </div>
         </div>
         <el-badge
@@ -48,12 +54,12 @@
           <div class="designTagPool">
             <p>模板标签：</p>
             <el-tag
-              :key="tag[0]"
+              :key="tag.id"
               v-for="(tag,index) in dynamicTags"
               closable
               :disable-transitions="false"
               @close="handleClose(index)"
-            >{{tag[1]}}</el-tag>
+            >{{tag.answer_t}}</el-tag>
           </div>
           <p class="textleft">标签池：</p>
           <div class="tagPool">
@@ -87,6 +93,11 @@
 h2 {
   padding-left: 2.5%;
   text-align: left;
+  span {
+    font-size: 14px;
+    color: gray;
+    margin-left: 4%;
+  }
 }
 
 .designArea {
@@ -285,227 +296,242 @@ h2 {
 </style>
 <script>
 // @ is an alias to /src
-import { mapState, mapActions, mapGetters } from "vuex";
-import bus from "@/eventBus.js";
-import axios from "axios";
-import _ from "lodash";
+import { mapState, mapActions, mapGetters } from 'vuex'
+import bus from '@/eventBus.js'
+import axios from 'axios'
+import _ from 'lodash'
 export default {
-  name: "myDesign",
+  name: 'myDesign',
   data: function() {
     return {
       pageIndex: 0,
       projectArr: [
         {
-          img: "",
-          id: "1",
+          img: '',
+          id: '1',
           select: false
         },
         {
-          img: "",
-          id: "2",
+          img: '',
+          id: '2',
           select: false
         },
         {
-          img: "",
-          id: "3",
+          img: '',
+          id: '3',
           select: false
         }
       ],
       tempData: null,
       showTag: false,
-      dynamicTags: [[0, "标签一"], [1, "标签一as"], [2, "标签一12wer3"]],
+      dynamicTags: [[0, '标签一'], [1, '标签一as'], [2, '标签一12wer3']],
       inputVisible: false,
-      inputValue: "",
-      tagPool: [
-        [0, "标签一"],
-        [1, "标签一as"],
-        [2, "标签一12wer3"],
-        [3, "标签一123erter"]
-      ]
-    };
+      inputValue: '',
+      tagPool: [[0, '标签一'], [1, '标签一as'], [2, '标签一12wer3'], [3, '标签一123erter']]
+    }
   },
   computed: {
     ...mapState({
-      user_type: state => state.user_type,
-      user_data: state => state.user_data,
+      user_type: state => state.user.user_type,
+      user_data: state => state.user.user_data,
       api: state => state.api
     })
   },
   created: function() {},
   mounted: function() {
-    const me = this;
-    me.getTempData(0);
-    bus.$on("myDesignIndex", function(index) {
+    const me = this
+    me.getTempData(0)
+    bus.$off('myDesignIndex').$on('myDesignIndex', function(index) {
       if (index == me.pageIndex) {
       } else {
-        me.getTempData(index);
-        me.$set(me, "pageIndex", index);
+        me.getTempData(index)
+        me.$set(me, 'pageIndex', index)
       }
-    });
+    })
   },
   methods: {
     getTempData: function(index) {
-      const me = this;
-      //我的设计tab切换
+      const me = this
+      // 我的设计tab切换
       let postData = {
         user_id: me.user_data.id,
-        status: index
-      };
+        status: index == 1 ? '1,3' : `${index}`
+      }
       axios({
-        method: "post",
+        method: 'post',
         url: me.api.template_audit_list,
         data: postData
       }).then(function(res) {
-        //处理设计师用户的模板项目
+        res = res.data
+        // 处理设计师用户的模板项目
         if (res.data.length > 0) {
-          let projectArr = res.data;
-          let outLine = [];
-          let onLine = [];
+          let projectArr = res.data
+          let outLine = []
+          let onLine = []
           for (let i = 0; i < projectArr.length; i++) {
             projectArr[i].select = false
-            if (projectArr[i].status == 3 || projectArr[i].status == 0){
+            if (projectArr[i].status == 3 || projectArr[i].status == 0) {
               outLine.push(projectArr[i])
             }
             if (projectArr[i].status == 1) {
               onLine.push(projectArr[i])
             }
           }
-          let newArr = [...outLine, ...onLine];
-          me.$set(me, "projectArr", newArr);
+          let newArr = [...outLine, ...onLine]
+          me.$set(me, 'projectArr', newArr)
         } else {
-          let empty = [];
-          me.$set(me, "projectArr", empty);
+          let empty = []
+          me.$set(me, 'projectArr', empty)
         }
-      });
+      })
     },
     hoverFunc: function(index) {
-      const me = this;
+      const me = this
       // let project=me.projectArr.map((item)=>{item.select=false;
       //   return item
       // })
       // me.$set(me,'projectArr',project)
-      me.$set(me["projectArr"][index], "select", true);
+      me.$set(me['projectArr'][index], 'select', true)
     },
     outFunc: function(index) {
-      const me = this;
-      me.$set(me["projectArr"][index], "select", false);
+      const me = this
+      me.$set(me['projectArr'][index], 'select', false)
     },
     submit: function(id, index) {
-      const me = this;
+      const me = this
       axios({
-        method: "post",
+        method: 'post',
         url: me.api.temp_change_status,
-        data: { id: parseInt(id) }
+        data: {
+          id: parseInt(id),
+          status: 3,
+          author: me.user_data.id
+        }
       })
         .then(function(res) {
-          me.projectArr.splice(index, 1);
+          me.projectArr.splice(index, 1)
           me.$message({
-            message: "项目提交成功，请前往“已提交”查看",
-            type: "success"
-          });
+            message: '项目提交成功，请前往“已提交”查看',
+            type: 'success'
+          })
         })
-        .catch(function(err) {
-          me.$message.error("提交错误请稍后再试");
-        });
+        .catch(function() {
+          me.$message.error('提交错误请稍后再试')
+        })
     },
     showTagFunc: function(show, index = 0) {
-      const me = this;
+      const me = this
       if (show) {
-        //查看标签池
+        // 查看标签池
         axios({
-          method: "get",
+          method: 'get',
           url: me.api.find_label_list
         }).then(function(res) {
+          res = res.data
           if (res.data.length > 0) {
-            let tagPool = [];
+            let tagPool = []
             for (let i = 0; i < res.data.length; i++) {
-              let item = [];
-              item.push(parseInt(res.data[i].id));
-              item.push(res.data[i].label_name);
-              tagPool.push(item);
+              let item = []
+              item.push(parseInt(res.data[i].id))
+              item.push(res.data[i].answer_t)
+              tagPool.push(item)
             }
-            me.$set(me, "tagPool", tagPool);
+            me.$set(me, 'tagPool', tagPool)
           }
-        });
-        //更新此模板数据
-        me.$set(me, "dynamicTags", me.projectArr[index].label_id);
-        me.$set(me, "tempData", {
+        })
+        // 更新此模板数据
+        me.$set(me, 'dynamicTags', me.projectArr[index].label_id)
+        me.$set(me, 'tempData', {
           img: me.projectArr[index].path,
           name: me.projectArr[index].template_name,
           id: me.projectArr[index].id,
-          status: me.projectArr[index].status == 1 ? "已上线" : "未上线"
-        });
+          status: me.projectArr[index].status == 1 ? '已上线' : '未上线'
+        })
         //
       }
-      me.$set(me, "showTag", show);
+      me.$set(me, 'showTag', show)
     },
     handleClose(index) {
-      this.dynamicTags.splice(index, 1);
+      this.dynamicTags.splice(index, 1)
     },
     selectTagFunc: function(tag) {
-      const me = this;
-      let tagIn = false;
+      const me = this
+      let tagIn = false
       if (me.dynamicTags && me.dynamicTags.length > 0) {
-        tagIn = me.dynamicTags.some(item => item[0] == tag[0]);
+        tagIn = me.dynamicTags.some(item => item.id == tag[0])
       } else {
       }
       if (!tagIn) {
-        let data = _.cloneDeep(me.dynamicTags);
-        if (data === null) data = [];
-        data.push(tag);
-        me.$set(me, "dynamicTags", data);
+        let data = _.cloneDeep(me.dynamicTags)
+        if (!(data instanceof Array)) data = []
+        data.push({ id: tag[0], answer_t: tag[1] })
+        me.$set(me, 'dynamicTags', data)
+        data = null
       }
     },
     saveTag: function() {
-      const me = this;
-      //保存标签
-      let tagArr = [];
+      const me = this
+      // 保存标签
+      let tagArr = []
       for (let i = 0; i < me.dynamicTags.length; i++) {
-        tagArr.push(parseInt(me.dynamicTags[i][0]));
+        tagArr.push(parseInt(me.dynamicTags[i].id))
       }
       axios({
-        method: "post",
+        method: 'post',
         url: me.api.add_template_label,
         data: {
           id: me.tempData.id,
           label_id: JSON.stringify(tagArr)
         }
       }).then(function(res) {
-        me.getTempData(me.pageIndex);
+        me.getTempData(me.pageIndex)
         me.$message({
-          message: "标签保存成功",
-          type: "success"
-        });
-      });
+          message: '标签保存成功',
+          type: 'success'
+        })
+      })
     },
     changeProject: function(id) {
-      const me = this;
+      const me = this
       // me.$router.push({ path: `/canvas?userType=designer&tempId=1520` })
       me.$router.push({
         path: `/canvas?userType=designer&tempId=${parseInt(id)}`
-      });
+      })
     },
     online: function(id, status) {
-      const me = this;
-      if (status == 3) {
-        axios({
-          method: "post",
-          url: me.api.complete_template_audit,
-          data: { id: parseInt(id) }
-        })
-          .then(function(res) {
+      const me = this
+      axios({
+        method: 'post',
+        url: me.api.complete_template_audit,
+        data: {
+          id: parseInt(id),
+          status: status,
+          author: me.user_data.id
+        }
+      })
+        .then(function(res) {
+          if (status === 1) {
             me.$message({
-              message: "项目上线成功",
-              type: "success"
-            });
-            me.getTempData(1);
-          })
-          .catch(function(err) {
-            me.$message.error("提交错误请稍后再试");
-          });
-      } else {
-        me.$message.error("目前暂不支持此功能");
-      }
+              message: '项目上线成功',
+              type: 'success'
+            })
+          } else if (status === 0) {
+            me.$message({
+              message: '撤销成功，回到《未提交》',
+              type: 'success'
+            })
+          } else if (status === 3) {
+            me.$message({
+              message: '下线成功',
+              type: 'success'
+            })
+          }
+
+          me.getTempData(1)
+        })
+        .catch(function() {
+          me.$message.error('提交错误请稍后再试')
+        })
     }
     // showInput() {
     //   this.inputVisible = true;
@@ -523,5 +549,5 @@ export default {
     //   this.inputValue = '';
     // }
   }
-};
+}
 </script>
