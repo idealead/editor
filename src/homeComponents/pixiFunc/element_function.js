@@ -14,7 +14,7 @@ export default {
       let mouse_x = browser_w / 2 - (me.window_w * canvas_scale / 2) + (event.data.global.x * canvas_scale)
       let mouse_y = event.data.global.y * canvas_scale
       // let mouse_y = browser_h / 2 + ((70 / 2) - (me.window_h * canvas_scale / 2)) + (event.data.global.y * canvas_scale)
-      if (mouse_y + 310 >= browser_h + parseInt(document.getElementById('mainCanvas').scrollTop)) { mouse_y = browser_h - 310 + parseInt(document.getElementById('mainCanvas').scrollTop) }
+      if (mouse_y + 300 + 80 >= browser_h + parseInt(document.getElementById('mainCanvas').scrollTop)) { mouse_y = browser_h - 310 + parseInt(document.getElementById('mainCanvas').scrollTop) }
       if (mouse_x + 160 >= browser_w) mouse_x = browser_w - 160
       // 右键面板展示
       me.$set(me.right_block, 'rb_left', `${mouse_x}px`)
@@ -93,12 +93,12 @@ export default {
         let newPosition = that.data.getLocalPosition(me.mainStage_container)
         that.deviationX = newPosition.x - that.parent.x
         that.deviationY = newPosition.y - that.parent.y
-        me.containerLine(that, false)
+        me.containerLine(that, false, true)
         me.showEdit(that.type)
         newPosition = null
       } else {
         // 删除之前的边框按钮图层，增加此对象的边框按钮
-        me.containerLine(that, false, false, '#D62B25', true)
+        me.containerLine(that, false, true, false, true)
         me.$set(me.edit_bar.btn, 'show', false)
       }
       me = null
@@ -328,9 +328,9 @@ export default {
       let me = this
       console.log('缩放')
       if (me.can_scale) {
-        var e = event.data.getLocalPosition(me.mainStage_container)
+        let e = event.data.getLocalPosition(me.mainStage_container)
         // 目前拉伸的到原点连线的长度
-        var n = computed_func.LENGTH_SIZE({
+        let n = computed_func.LENGTH_SIZE({
           x: me.in_move.parent.position.x,
           y: me.in_move.parent.position.y
         }, e)
@@ -338,16 +338,16 @@ export default {
         // let d_value = Math.abs(e.x - me.in_move.parent.position.x)
         if (me.in_move.type == 'text') {
           if (me.textTime) {
-            me.$set(me, 'textTime', false)
+            me.textTime = false
             me.scaleAll(n, me.in_move.text_num)
             me.$nextTick(() => {
-              me.$set(me, 'textTime', true)
+              me.textTime = true
             })
           }
         } else {
           me.scaleAll(n)
         }
-        me.$set(me, 'after_scale', true)
+        me.after_scale = true
         e = null
         n = null
       }
@@ -360,7 +360,7 @@ export default {
         return
       }
       // x1 x2为原始拉伸对象的长宽
-      var x1,
+      let x1,
         x2
       x1 = me.in_move.originalw / 2
       x2 = me.in_move.originalh / 2
@@ -377,6 +377,7 @@ export default {
         newStyle.lineHeight = me.in_move.style.fontSize + me.in_move.lineHeightM
         me.in_move.style = newStyle
         fs = null
+        newStyle = null
         // me.moveIcon(me.in_move)
       } else {
         if (me.in_move.svg) {
@@ -407,10 +408,11 @@ export default {
           }
         }
       }
-      me.containerLine(me.in_move, false)
+      me.containerLine(me.in_move, false, true)
 
       if (me.in_move.type == 'text') {
-        me.$set(me.edit_bar.text, 'fontSize', me.in_move.style.fontSize)
+        me.edit_bar.text.fontSize = me.in_move.style.fontSize
+        // me.$set(me.edit_bar.text, 'fontSize', me.in_move.style.fontSize)
         me.scaleTextEnd(me.in_move)
       } else if (me.in_move.svg) {
         me.updateSvgScale(me.in_move)
@@ -515,7 +517,7 @@ export default {
       me.in_move.originalw = me.in_move.width
       me.in_move.originalh = me.in_move.height
       me.in_move.ofonts = me.in_move.style.fontSize
-      me.containerLine(me.in_move, false)
+      me.containerLine(me.in_move, false, true)
       if (me.in_move.association_name !== '') {
         me.aSingleClickBorder(me.in_move.association_name)
       }

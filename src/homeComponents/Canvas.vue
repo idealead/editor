@@ -16,15 +16,15 @@
         <div v-if="!right_block.menu.lock" @click="lockFunc">{{ right_block.lock_text }}</div>
         <div v-if="right_block.menu.lock" @click="unlockFunc">{{ right_block.unlock_text }}</div>
       </div>
-      <div v-if="new_structure_id != ''" class="mouse_right_btn" @click="moveIndex(true)">上移</div>
-      <div v-if="new_structure_id != ''" class="mouse_right_btn" @click="moveIndex(false)">下移</div>
+      <div v-if="new_structure_id != ''|| true" class="mouse_right_btn" @click="moveIndex(true)">上移</div>
+      <div v-if="new_structure_id != ''|| true" class="mouse_right_btn" @click="moveIndex(false)">下移</div>
       <div
-        v-if="new_structure_id != ''"
+        v-if="new_structure_id != ''|| true"
         class="mouse_right_btn"
         @click="moveIndex(true, 'maxUp')"
       >置顶</div>
       <div
-        v-if="new_structure_id != ''"
+        v-if="new_structure_id != ''|| true"
         class="mouse_right_btn"
         @click="moveIndex(false, 'maxDown')"
       >置底</div>
@@ -820,6 +820,8 @@ export default {
         },
         fontFamily: [
           { name: '默认', value: 'default' },
+          { name: '思源黑体-Bold', value: 'syht_bold' },
+          { name: 'Adobe 黑体 Std', value: 'adobehtstd' },
           { name: '华文宋体', value: 'STSong' },
           { name: '苹方黑体', value: 'pfht' },
           { name: '日本花园明朝体', value: 'japanhymc' },
@@ -829,20 +831,34 @@ export default {
           { name: '方正美黑简体', value: 'fzmhjt' },
           { name: '方正姚体繁体', value: 'fzytft' },
           { name: '方正华隶繁体', value: 'FZHLFW' },
+          { name: '方正华隶_GBK', value: 'fzhlgbk' },
           { name: '方正祥隶繁体', value: 'fzxlft' },
           { name: '方正魏碑繁体', value: 'fzwbft' },
+          { name: '方正琥珀繁体', value: 'fzhpft' },
+          { name: '方正综艺繁体', value: 'fzzyft' },
+          { name: '方正综艺简体', value: 'fzzyjt' },
           { name: '方正正粗黑', value: 'fzzch' },
           { name: '方正艺黑体', value: 'fzyht' },
           { name: '方正牟氏黑隶简体', value: 'fzmshljt' },
+          { name: '方正大黑简体', value: 'fzdhjt' },
           { name: '方正方魅简体', value: 'fzfmjt' },
-          { name: '方正粗圆GBK', value: 'fzcygbk' },
+          { name: '方正粗圆_GBK', value: 'fzcygbk' },
+          { name: '方正准雅宋_GBK', value: 'fzzys_gbk' },
           { name: '方正像素24', value: 'fzxs24' },
+          { name: '方正像素14', value: 'fzxs14' },
           { name: '方正点阵', value: 'fzdz' },
           { name: '方正幼线', value: 'fzyx' },
           { name: '方正兰亭中粗黑_GBK', value: 'fzltzch_gbk' },
           { name: '方正粗活意简体', value: 'fzchyjt' },
           { name: '方正粗雅宋扁繁体', value: 'fzcysbft' },
           { name: '方正吕建德楷体', value: 'fzljdkt' },
+          { name: '方正黑体_GBK', value: 'fzht_gbk' },
+          { name: '方正大标宋_GBK', value: 'fzdbs_gbk' },
+          { name: '方正大标宋简体', value: 'fzdbsjt' },
+          { name: '方正青刻宋体', value: 'fzqkst' },
+          { name: '方正特粗光辉简体', value: 'fztcghjt' },
+          { name: '方正剑体简体', value: 'fzjtjt' },
+          { name: '方正古隶简体', value: 'fzgljt' },
           { name: '华康勘亭流_简&繁', value: 'hkktlj' },
           { name: '华康宋体W12', value: 'hkstw12' },
           { name: '叶根友特楷简体', value: 'ygytkjt' },
@@ -856,7 +872,14 @@ export default {
           { name: 'Adobe仿宋', value: 'adobefs' },
           { name: 'Adobe黑体', value: 'adobeht' },
           { name: '汉仪迪升英雄体', value: 'hydsyxt' },
-          { name: '百度综艺简体', value: 'bdzyjt' }
+          { name: '百度综艺简体', value: 'bdzyjt' },
+          { name: '锐字真言体', value: 'myrzzyt' },
+          { name: '锐字锐线怒放黑简', value: 'rzrxnfhj' },
+          { name: '明朝宋体', value: 'mcst' },
+          { name: '游明朝体', value: 'ymct' },
+          { name: '华文楷体', value: 'hwkt' },
+          { name: 'Herculanum', value: 'Herculanum' }
+
           // { name: "凌渡鲲鹏简", value: "REEJI-CHAO-KunPengGB" }
         ],
         align: [
@@ -939,13 +962,6 @@ export default {
       project_m_comp: state => state.homeCanvas.project_m_comp,
       user_type: state => state.user.user_type,
       tempId: state => state.homeCanvas.tempId,
-      // changeTitle: state => state.changeTitle,
-      // changeSubtitle: state => state.changeSubtitle,
-      // changeLogo: state => state.changeLogo,
-      // changeMain: state => state.changeMain,
-      // logoFileId: state => state.logoFileId,
-      // mainFileId: state => state.mainFileId,
-      // token: state => state.token,
       mould_name: state => state.homeCanvas.mould_name,
       structure_id: state => state.homeCanvas.structure_id,
       user_data: state => state.user.user_data,
@@ -994,6 +1010,30 @@ export default {
       yf.release = () => {}
       return yf
     },
+    key_upf: function() {
+      let upf = this.keyboard(38)
+      upf.press = () => {}
+      upf.release = () => {}
+      return upf
+    },
+    key_downf: function() {
+      let downf = this.keyboard(40)
+      downf.press = () => {}
+      downf.release = () => {}
+      return downf
+    },
+    key_leftf: function() {
+      let leftf = this.keyboard(37)
+      leftf.press = () => {}
+      leftf.release = () => {}
+      return leftf
+    },
+    key_rightf: function() {
+      let rightf = this.keyboard(39)
+      rightf.press = () => {}
+      rightf.release = () => {}
+      return rightf
+    },
     right_block_ass: function() {
       if (this.right_block.menu.ass == 1 || this.right_block.menu.ass == 2) {
         return true
@@ -1029,6 +1069,7 @@ export default {
       return !!window.localStorage.getItem('firstEdit')
     }
   },
+  mounted: function() {},
   watch: {},
   beforeDestroy: function() {
     const me = this
@@ -1122,13 +1163,17 @@ export default {
     bus.$off('editbarClose').$on('editbarClose', function() {
       me.$set(me.edit_bar.btn, 'show', false)
     })
+    bus.$off('rightShow').$on('rightShow', function(tf) {
+      let browser_w = document.body.clientWidth
+      let browser_h = document.body.clientHeight
+      me.$set(me.right_block, 'rb_left', `${browser_w / 2 - 85}px`)
+      me.$set(me.right_block, 'rb_top', `${browser_h / 2 - 150}px`)
+      me.right_block.show = tf
+    })
     if (!window.localStorage.getItem('firstEdit')) {
       // 用户第一次打开编辑工具
       me.$set(me.edit_bar.btn, 'show', true)
     }
-    // bus.$on("closeMouldFuncShow",function() {
-    //   me.$set(me, 'mouldFuncShow', false)
-    // })
     me.key_zf.press = function() {
       // 快捷键监听
       if (me.key_ctrlf.isDown && !me.key_ctrlf.isUp) {
@@ -1140,6 +1185,22 @@ export default {
       if (me.key_ctrlf.isDown && !me.key_ctrlf.isUp) {
         me.moveActiveLog('next')
       }
+    }
+    me.key_upf.press = function() {
+      // 快捷键监听
+      me.moveInMove('up')
+    }
+    me.key_downf.press = function() {
+      // 快捷键监听
+      me.moveInMove('down')
+    }
+    me.key_leftf.press = function() {
+      // 快捷键监听
+      me.moveInMove('left')
+    }
+    me.key_rightf.press = function() {
+      // 快捷键监听
+      me.moveInMove('right')
     }
     window.onresize = function() {
       var target = this
@@ -1160,18 +1221,30 @@ export default {
     }, 200)
   },
   methods: {
-    // recommendText: function(arr) {
-    //   other_func.recommendText.bind(this)(arr)
-    // },
-    // handleCommand: function(items) {
-    //   other_func.handleCommand.bind(this)(items[0], items[1])
-    // },
-    // updateTextPosition: function(arr) {
-    //   other_func.updateTextPosition.bind(this)(arr)
-    // },
-    // setReplaceText: function() {
-    //   other_func.setReplaceText.bind(this)()
-    // },
+    moveInMove: function(direction) {
+      let me = this
+      if (me.in_move) {
+        let xw = 0
+        let xy = 0
+        switch (direction) {
+          case 'up':
+            xy = -1
+            break
+          case 'down':
+            xy = 1
+            break
+          case 'left':
+            xw = -1
+            break
+          case 'right':
+            xw = 1
+            break
+        }
+        me.in_move.parent.position.set(me.in_move.parent.x + xw, me.in_move.parent.y + xy)
+        // 存储进活动日志
+        me.pushActiveLog(true)
+      }
+    },
     setSkew: function() {
       const me = this
       me.in_move.skew.set(-0.5, 0)
@@ -1404,7 +1477,7 @@ export default {
       let c_len = me.container_arr.length
       me.container_arr.splice(c_len - len, len)
       for (let i = 0; i < len; i++) {
-        me.mainStage_container.removeChildAt(c_len - len + 1)
+        me.mainStage_container.removeChildAt(c_len - len)
       }
       me.renderStage()
       // 删除结束
@@ -1433,7 +1506,10 @@ export default {
       //
       let img = null
       setTimeout(function() {
-        me.ClippingImage(me.p_app.renderer.plugins.extract.base64(me.p_app.stage), me.canvas_width, me.canvas_height, 0.52, function(base64Result) {
+        let mycanvas = document.getElementById('pixiCanvas')
+        me.p_app.render()
+        let base64Img = mycanvas.toDataURL('image/jpeg', 1)
+        me.ClippingImage(base64Img, me.canvas_width, me.canvas_height, 0.92, function(base64Result) {
           img = base64Result
           // me.downloadImg(img);
           // 如果有"弧形标题（直的）"，则显示回来
@@ -1480,7 +1556,7 @@ export default {
       }
       if (me.user_type == 'client') {
         if (me.thisTempLevel == 'storage') {
-          id = parseInt(me.tempId)
+          tempData.id = parseInt(me.tempId)
         }
         tempData.level = 'storage'
         // 用户修改的模板绑定根id
@@ -1597,6 +1673,8 @@ export default {
         me.p_app.view.style.width = me.window_w + 'px'
         me.p_app.view.style.height = me.window_h + 'px'
         me.p_app.stage.off().on('mousedown', me.cancel_something)
+        // 有可能要加入一个点击的矩形，用于取消之前选中的对象
+        me.addCancleRect()
         // 创建主内容容器，包含所有内容，固定尺寸，container_arr作为其子元素
         let mainStage = new PIXI.Container()
         mainStage.width = me.canvas_width
@@ -2028,7 +2106,7 @@ export default {
       // me.in_move.style.lineHeight = me.in_move.style.fontSize + me.in_move.lineHeightM;
       // me.p_app.renderer.render(me.in_move);
       //
-      me.containerLine(me.in_move, false)
+      me.containerLine(me.in_move, false, true)
       me.scaleTextEnd(me.in_move)
       // 存储进活动日志
       me.pushActiveLog(true)
@@ -2067,7 +2145,7 @@ export default {
       value = parseInt(value)
       const me = this
       me.in_move.style.leading = value
-      me.containerLine(me.in_move, false)
+      me.containerLine(me.in_move, false, true)
       // 存储进活动日志
       me.pushActiveLog(true)
     },
@@ -2075,7 +2153,7 @@ export default {
       value = parseInt(value)
       const me = this
       me.in_move.style.letterSpacing = value
-      me.containerLine(me.in_move, false)
+      me.containerLine(me.in_move, false, true)
       // 存储进活动日志
       me.pushActiveLog(true)
     },
@@ -2097,7 +2175,7 @@ export default {
       // 单个元素改变边框
       const me = this
       if ((me.ctrl_arr && me.ctrl_arr.length == 0) || !me.ctrl_arr) {
-        me.containerLine(me.in_move, false)
+        me.containerLine(me.in_move, false, true)
       } else if (me.ctrl_arr && me.ctrl_arr.length > 0) {
         me.aSingleClickBorder(me.in_move.association_name)
       }
@@ -2121,14 +2199,14 @@ export default {
     dropShadowBlurChange: function(value) {
       const me = this
       me.in_move.style.dropShadowBlur = value
-      me.containerLine(me.in_move, false)
+      me.containerLine(me.in_move, false, true)
       // 存储进活动日志
       me.pushActiveLog(true)
     },
     dropShadowDistanceChange: function(value) {
       const me = this
       me.in_move.style.dropShadowDistance = value
-      me.containerLine(me.in_move, false)
+      me.containerLine(me.in_move, false, true)
       // 存储进活动日志
       me.pushActiveLog(true)
     },
@@ -2328,7 +2406,7 @@ export default {
         } else {
           me.$set(me.right_block.menu, 'lock', true)
           me.$set(me.right_block, 'unlock_text', '解锁')
-          me.containerLine(f_parm.currentTarget, false, false, '#D62B25', true)
+          me.containerLine(f_parm.currentTarget, false, true, false, true)
         }
       } else if (f_parm.type == 2) {
         // 类型2 为临时组合的删除功能
@@ -2586,13 +2664,13 @@ export default {
       me.in_move = me.container_arr[index].cont.children[0]
       if (me.in_move.association_name == '') {
         if (me.in_move.lock) {
-          me.containerLine(me.in_move, false, false, '#D62B25', true)
+          me.containerLine(me.in_move, false, true, false, true)
           me.$set(me.edit_bar.btn, 'show', false)
         } else {
           // 没有组合的单个图层
           me.clearTemporary()
           // 删除之前的边框按钮图层，增加此对象的边框按钮
-          me.containerLine(me.in_move, false)
+          me.containerLine(me.in_move, false, true)
           me.showEdit(me.in_move.type)
         }
       } else {
@@ -2673,7 +2751,7 @@ export default {
           }
           key.isDown = true
           key.isUp = false
-          if (event.keyCode == 91 || event.keyCode == 93) {
+          if (event.keyCode == 91 || event.keyCode == 93 || event.keyCode == 38 || event.keyCode == 40) {
             event.preventDefault()
           }
         }
@@ -2684,7 +2762,7 @@ export default {
           if (key.isDown && key.release) key.release()
           key.isDown = false
           key.isUp = true
-          if (event.keyCode == 91 || event.keyCode == 93) {
+          if (event.keyCode == 91 || event.keyCode == 93 || event.keyCode == 38 || event.keyCode == 40) {
             event.preventDefault()
           }
         }

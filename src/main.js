@@ -15,7 +15,7 @@ Vue.use(ElementUI)
 Vue.config.productionTip = false
 
 axios.defaults.baseURL = '/api'
-
+axios.defaults.timeout = 3000
 const requireComponent = require.context(
   // 其组件目录的相对路径
   './components',

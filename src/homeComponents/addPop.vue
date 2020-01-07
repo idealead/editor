@@ -61,7 +61,7 @@
   overflow: hidden;
   margin: 5px;
   position: relative;
-  p{
+  p {
     position: absolute;
     bottom: 5px;
     text-align: center;
@@ -115,7 +115,7 @@
   height: calc(100% - 50px);
   overflow-y: auto;
   margin-top: 10px;
-  transform: translatex(-8.5px);
+  // transform: translatex(-8.5px);
 }
 
 .uploadbtn .el-button {
@@ -135,6 +135,7 @@
   overflow: hidden;
   display: inline-block;
   box-sizing: border-box;
+  transform: translateX(-9px);
 }
 
 .addPop_back {
@@ -483,6 +484,10 @@ export default {
     },
     on_success: function(response, file, fileList) {
       const me = this
+      if (response.code !== 0) {
+        me.$message.error(`${response.data.msg}`)
+        return false
+      }
       let item = {
         size: null,
         arc: null,
@@ -496,10 +501,6 @@ export default {
         { file_id: parseInt(response.data.file_id) },
         { id: parseInt(response.data.file_id) }
       )
-      // item.src = this.api.images + response.data.savepath
-      // item.url = this.api.images + response.data.savepath
-      // item.file_id = parseInt(response.data.file_id)
-
       this.$set(this.fileList, 'list', [item, ...this.fileList.list])
     },
     before_upload: function(file) {

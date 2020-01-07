@@ -423,7 +423,7 @@ export default {
       if (me.in_move && me.ctrl_arr.length == 0 && me.in_move.association_name == '') {
         // 单个元素锁定
         me.in_move.lock = true
-        me.containerLine(me.in_move, false, false, '#D62B25', true)
+        me.containerLine(me.in_move, false, true, false, true)
       } else if (!me.temporary_rect && me.ctrl_arr.length > 0) {
         // 组合锁定
         for (let i = 0; i < me.ctrl_arr.length; i++) {
@@ -441,7 +441,7 @@ export default {
       if (me.in_move && me.ctrl_arr.length == 0 && me.in_move.association_name == '') {
         // 单个元素解锁
         me.in_move.lock = false
-        me.containerLine(me.in_move, false)
+        me.containerLine(me.in_move, false, true)
       } else if (!me.temporary_rect && me.ctrl_arr.length > 0) {
         // 组合解锁
         for (let i = 0; i < me.ctrl_arr.length; i++) {
@@ -644,7 +644,7 @@ export default {
       ratio -= 0.14
       ratio = Math.floor(ratio * 100) / 100
       me.$set(me, 'canvas_scale', ratio)
-      document.getElementById('pixiCanvas').style.transform = `scale(${ratio}) translateX(-${me.window_w/2}px)`
+      document.getElementById('pixiCanvas').style.transform = `scale(${ratio}) translateX(-${me.window_w / 2}px)`
       // translateY(-710px)
     },
     canvasScale: function (type) {
@@ -657,7 +657,7 @@ export default {
       }
       ratio = Math.floor(ratio * 100) / 100
       me.$set(me, 'canvas_scale', ratio)
-      document.getElementById('pixiCanvas').style.transform = `scale(${ratio}) translateX(-${me.window_w/2}px)`
+      document.getElementById('pixiCanvas').style.transform = `scale(${ratio}) translateX(-${me.window_w / 2}px)`
     },
     showRuler: function () {
       const me = this
@@ -742,7 +742,8 @@ export default {
     updateTextPosition: function (arr) {
       this.$set(this, 'textPositionArr', arr)
     },
-    handleCommand: function (index, item) {
+    handleCommand: function (data) {
+      let [index, item] = data
       // 选择了文案替换位置
       const me = this
       if (index === -1) {

@@ -170,10 +170,8 @@
 // @ is an alias to /src
 import { mapState, mapActions, mapGetters } from 'vuex'
 import axios from 'axios'
-// import extendf from '@/designerComponents/extend.js'
 // import bus from '@/eventBus.js'
 export default {
-  // extends: extendf,
   name: 'structure',
   props: {
     structureD: {
@@ -216,7 +214,6 @@ export default {
     }
   },
   created: function() {
-    // this.changetext()
   },
   mounted: function() {
     // const me = this

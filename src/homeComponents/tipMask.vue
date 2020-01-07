@@ -109,10 +109,14 @@ export default {
         // 最后一个
         me.$emit('closeTip')
       } else {
-        if (index == 2) {
+        // 侧边栏切换
+        bus.$emit('tabChange', 'text')
+        bus.$emit('rightShow', false)
+        if (index === 2) {
+          // 侧边栏切换
           bus.$emit('tabChange', 'layer')
-        } else {
-          bus.$emit('tabChange', 'text')
+        } else if (index === 0) {
+          bus.$emit('rightShow', true)
         }
         me.$set(me.tipsProcess[index + 1], 'showif', true)
       }

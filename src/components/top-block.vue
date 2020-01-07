@@ -49,7 +49,7 @@
         ></div>
       </el-tooltip>
       <div class="user_name">{{name?name:'用户'}}</div>
-      <div class="logout" @click="logout">{{user_type=='designer'?'退出登录':'      '}}</div>
+      <div class="logout" @click="logout">{{user_type=='designer'?'退出登录':''}}</div>
     </div>
     <div class="alert_mask" v-if="alert_show">
       <div class="alert">
@@ -254,7 +254,7 @@
   font-family: 'SiYuan';
 }
 .logout{
-  min-height: 60px
+  min-width: 40px
 }
 @media only screen and (max-width: 1600px) and (min-width: 1280px) {
   .user_name,

@@ -48,16 +48,15 @@
         </div>
       </div>
       <div class="text_recommend" v-show="activeName=='text'">
-        <el-card
-          class="box-card"
+        <div
           v-for="(item,index) in tempText"
           :key="index"
-          :class="`box-card${index}`"
+          @click="recommend_text(item.content,index)"
         >
-          <div @click="recommend_text(item.content,index)">
+          <el-card class="box-card" :class="`box-card${index}`">
             <div v-for="(it,i) in item.content" :key="i" class="text-item">{{it}}</div>
-          </div>
-        </el-card>
+          </el-card>
+        </div>
       </div>
     </div>
   </div>
@@ -91,7 +90,7 @@
 // }
 .box-card:hover {
   width: calc(100% - 30px);
-  border: 1px solid red
+  border: 1px solid red;
 }
 .text-item {
   font-size: 14px;
@@ -328,8 +327,8 @@ export default {
     bus.$off('getRecommend').$on('getRecommend', father_id => {
       me.getRecommend(father_id)
     })
-    bus.$off('tabChange').$on('tabChange',name=>{
-      me.activeName=name
+    bus.$off('tabChange').$on('tabChange', name => {
+      me.activeName = name
     })
   },
   mounted: function() {},
@@ -342,9 +341,7 @@ export default {
       const me = this
       me.$set(me, 'layer_show', !me.layer_show)
     },
-    tabClick: function(tab, event) {
-
-    },
+    tabClick: function(tab, event) {},
     getRecommend: function(father_id) {
       const me = this
       axios({

@@ -5,7 +5,7 @@ export default {
     renderTemplate: function (firstLoad = false) {
       const me = this
       let data = me.render_data
-      me.p_app.stage.children[0].removeChildren()
+      // me.p_app.stage.children[1].removeChildren()
       me.$set(me, 'container_arr', [])
       me.$set(me, 'in_move', null)
       me.$set(me, 'ctrl_arr', [])
@@ -208,9 +208,7 @@ export default {
     },
     renderStage: function () {
       const me = this
-      me.p_app.stage.children[0].removeChildren()
-      // 有可能要加入一个点击的矩形，用于取消之前选中的对象
-      me.addCancleRect(me.mainStage_container)
+      me.p_app.stage.children[1].removeChildren()
       //
       for (let i = 0; i < me.container_arr.length; i++) {
         // 按顺序渲染容器
@@ -225,7 +223,7 @@ export default {
       me.p_app.stage.hitArea = new me.mypixi.Rectangle(0, 0, me.window_w, me.window_h)
       console.log('渲染舞台完毕')
     },
-    addCancleRect: function (mainStage) {
+    addCancleRect: function () {
       const me = this
       // 创建矩形
       let rectangle = new me.mypixi.Graphics()
@@ -242,7 +240,13 @@ export default {
       rectangle.y = -(me.window_h - me.canvas_height) / 2
       // 监听事件
       rectangle.on('click', me.cancelInMove)
-      mainStage.addChild(rectangle)
+      let cancleStage = new me.mypixi.Container()
+      cancleStage.width = me.canvas_width
+      cancleStage.height = me.canvas_height
+      cancleStage.position.set((me.window_w - me.canvas_width) / 2, (me.window_h - me.canvas_height) / 2)
+      cancleStage.accessible = true
+      cancleStage.addChild(rectangle)
+      me.p_app.stage.addChild(cancleStage)
     },
     outLine: function () {
       const me = this
@@ -480,11 +484,11 @@ export default {
       me.container_arr[me.findCont(set_data.id)].cont.addChild(sprite)
       if (!render_add) {
         // me.renderStage()
-        me.mainStage_container.addChildAt(me.container_arr[me.findCont(set_data.id)].cont, me.mainStage_container.children.length - 1)
+        me.mainStage_container.addChild(me.container_arr[me.findCont(set_data.id)].cont)
         // 在图层面板增加图层
         // 激活当前选中状态
         me.in_move = sprite
-        me.containerLine(me.in_move, false)
+        me.containerLine(me.in_move, false, true)
         me.showEdit(me.in_move.type)
         // 图层面板监听
       }
@@ -593,10 +597,9 @@ export default {
           .on('mouseup', me.onDragEnd)
         if (!render_add) {
           // 新增图层逻辑，渲染模板是等所有图层挂载完毕后才统一渲染
-          // me.renderStage()
-          me.mainStage_container.addChildAt(me.container_arr[me.findCont(set_data.id)].cont, me.mainStage_container.children.length - 1)
+          me.mainStage_container.addChild(me.container_arr[me.findCont(set_data.id)].cont)
           me.in_move = richText
-          me.containerLine(richText, false)
+          me.containerLine(richText, false, true)
           me.showEdit(me.in_move.type)
         }
       }
@@ -687,21 +690,22 @@ export default {
         }
       })
     },
-    containerLine: function (obj, t_a, a_r_btn = false, color = 0x87ceff, lock = false) {
+    containerLine: function (obj, t_a, remove, a_r_btn = false, lock = false) {
       // 增加边框的方法
-      const me = this
       // t_a用于判断是否是组合对象或者临时组合，是否添加按钮
-      if (!t_a) {
+      // remove是在主container中清除边框图层
+      // a_r_btn是组合的按钮
+      // lock是否锁定
+      const me = this
+      if (remove) {
         me.removeLine()
+        // 增加按钮线框容器
+        me.outLine()
       }
-      // 克隆尝试解决内存泄露（有可能循环引用）
-      // let cloneObj=_.cloneDeep(obj)
-      me.createBorder(obj, t_a, a_r_btn, !lock, color)
-      // cloneObj=null
+      me.createBorder(obj, t_a, a_r_btn, !lock)
     },
-    createBorder: function (obj, t_a, a_r_btn, show_btn = true, color = 0x87ceff) {
+    createBorder: function (obj, t_a, a_r_btn, show_btn = true) {
       let me = this
-      let dash = 15
       // dash是虚线空隙
       let sprite_Border = new me.mypixi.Container()
       sprite_Border.width = me.canvas_width
@@ -715,47 +719,6 @@ export default {
       sprite_Border.pivot.set(0, 0)
       sprite_Border.type = 'outLine_child'
       sprite_Border.name = obj.name
-
-      let line = new me.mypixi.Graphics()
-      line.lineStyle(3, color, 1)
-      line.moveTo(0, 0)
-      line.type = 'line'
-      line.name = 'line'
-      for (let k = 0; k < Math.ceil(obj.height / dash); k++) {
-        if (k + 1 >= Math.ceil(obj.height / dash)) {
-          // line.moveTo(0, dash * k)
-          // line.lineTo(0, Math.ceil(obj.height))
-          // line.moveTo(Math.ceil(-obj.width), (k - 1 > 0 ? k - 1 : 0) * dash)
-          // line.lineTo(Math.ceil(-obj.width), Math.ceil(obj.height))
-          line.moveTo(0, 0)
-          break
-        }
-        if (k % 2 == 0 || k == 0) {
-          line.lineTo(0, dash * k)
-          line.moveTo(Math.ceil(-obj.width), (k - 1 > 0 ? k - 1 : 0) * dash)
-          line.lineTo(Math.ceil(-obj.width), dash * k)
-        } else {
-          line.moveTo(0, dash * k)
-        }
-      }
-      for (let k = 0; k < Math.ceil(obj.width / dash); k++) {
-        // if (k + 1 >= Math.ceil(obj.width / dash)) {
-        //   line.moveTo(-dash * k, 0)
-        //   line.lineTo(Math.ceil(-obj.width), 0)
-        //   line.moveTo((k - 1 > 0 ? k - 1 : 0) * -dash, Math.ceil(obj.height))
-        //   line.lineTo(Math.ceil(-obj.width), Math.ceil(obj.height))
-        //   break
-        // }
-        if (k % 2 == 0 || k == 0) {
-          line.lineTo(-k * dash, 0)
-          line.moveTo((k - 1 > 0 ? k - 1 : 0) * -dash, Math.ceil(obj.height))
-          line.lineTo(-k * dash, Math.ceil(obj.height))
-        } else {
-          line.moveTo(-k * dash, 0)
-        }
-      }
-      line.x = Math.ceil(obj.width / 2)
-      line.y = Math.ceil(-obj.height / 2)
 
       // 参数为边框按钮容器对象和选中元素对象
       if (t_a && show_btn) {
@@ -781,15 +744,71 @@ export default {
         }
       }
       // 添加线框会导致内存泄露
-      sprite_Border.addChild(line)
+      sprite_Border.addChild(me.createBorderLine({ width: obj.width, height: obj.height }, (!show_btn ? '#D62B25' : 0x87ceff)))
       // 边框图层旋转角度和对象元素选择角度一致
       sprite_Border.rotation = obj.rotation
       me.outLine_container.addChild(sprite_Border)
-      // 
+      //
       sprite_Border = null
-      line = null
+      // line = null
       obj = null
       me = null
+    },
+    createBorderLine: function (obj, color = 0x87ceff) {
+      let me = this
+      let dash = 15
+      let line = new me.mypixi.Graphics()
+      line.lineStyle(2, color, 1)
+      line.moveTo(0, 0)
+      line.type = 'line'
+      line.name = 'line'
+      // 直线
+      line.lineTo(obj.width, 0)
+      line.moveTo(obj.width, 0)
+      line.lineTo(obj.width, obj.height)
+      line.moveTo(obj.width, obj.height)
+      line.lineTo(0, obj.height)
+      line.lineTo(0, obj.height)
+      line.lineTo(0, 0)
+      line.moveTo(0, 0)
+      // for (let k = 0; k < Math.ceil(obj.height / dash); k++) {
+      //   if (k + 1 >= Math.ceil(obj.height / dash)) {
+      //     // line.moveTo(0, dash * k)
+      //     // line.lineTo(0, Math.ceil(obj.height))
+      //     // line.moveTo(Math.ceil(-obj.width), (k - 1 > 0 ? k - 1 : 0) * dash)
+      //     // line.lineTo(Math.ceil(-obj.width), Math.ceil(obj.height))
+      //     line.moveTo(0, 0)
+      //     break
+      //   }
+      //   if (k % 2 == 0 || k == 0) {
+      //     line.lineTo(0, dash * k)
+      //     line.moveTo(Math.ceil(-obj.width), (k - 1 > 0 ? k - 1 : 0) * dash)
+      //     line.lineTo(Math.ceil(-obj.width), dash * k)
+      //   } else {
+      //     line.moveTo(0, dash * k)
+      //   }
+      // }
+      // for (let k = 0; k < Math.ceil(obj.width / dash); k++) {
+      //   // if (k + 1 >= Math.ceil(obj.width / dash)) {
+      //   //   line.moveTo(-dash * k, 0)
+      //   //   line.lineTo(Math.ceil(-obj.width), 0)
+      //   //   line.moveTo((k - 1 > 0 ? k - 1 : 0) * -dash, Math.ceil(obj.height))
+      //   //   line.lineTo(Math.ceil(-obj.width), Math.ceil(obj.height))
+      //   //   break
+      //   // }
+      //   if (k % 2 == 0 || k == 0) {
+      //     line.lineTo(-k * dash, 0)
+      //     line.moveTo((k - 1 > 0 ? k - 1 : 0) * -dash, Math.ceil(obj.height))
+      //     line.lineTo(-k * dash, Math.ceil(obj.height))
+      //     line.moveTo(-k * dash, Math.ceil(obj.height))
+      //   } else {
+      //     line.moveTo(-k * dash, 0)
+      //   }
+      // }
+      line.position.set(-obj.width / 2, -obj.height / 2)
+      // line.x = Math.ceil(obj.width / 2)
+      // line.y = Math.ceil()
+      return line
     },
     addScaleIcon: function (outLineC, obj, t_a, a_r_btn = false) {
       const me = this
@@ -1004,6 +1023,9 @@ export default {
         removeObj = null
       } else if (me.outLine_container) {
         me.outLine_container.removeChildren()
+        // 清除边框container
+        me.mainStage_container.removeChild(me.outLine_container)
+        me.outLine_container = null
       }
       me = null
     },
@@ -1029,8 +1051,7 @@ export default {
       let index = me.findCont('temporary_c')
       // 清空临时组合
       if (index !== -1) {
-        // 新增了个取消面板，所以index+1
-        me.mainStage_container.removeChildAt(index + 1)
+        me.mainStage_container.removeChildAt(index)
         me.container_arr.splice(index, 1)
       }
       if (me.ctrl_arr.length >= 1) {
@@ -1050,8 +1071,7 @@ export default {
       if (me.temporary_rect !== null) {
         let index_c = me.findCont('temporary_c')
         if (index_c !== -1) {
-          // 新增了取消面板所以index+1
-          me.mainStage_container.removeChildAt(index_c + 1)
+          me.mainStage_container.removeChildAt(index_c)
           me.container_arr.splice(index_c, 1)
         }
         me.temporary_rect = null
@@ -1062,7 +1082,7 @@ export default {
           if (me.ctrl_arr[i].type == 'association_gap_notT') {
             let index_c = me.findCont(me.ctrl_arr[i].name)
             if (index_c !== -1) {
-              me.mainStage_container.removeChildAt(index_c + 1)
+              me.mainStage_container.removeChildAt(index_c)
               me.container_arr.splice(index_c, 1)
             }
           }
@@ -1202,17 +1222,17 @@ export default {
       for (let i = 0; i < me.ctrl_arr.length; i++) {
         if (a_r_btn && me.ctrl_arr[i].association_name == name) {
           if (lock) {
-            me.containerLine(me.ctrl_arr[i], true, a_r_btn, '#D62B25', true)
+            me.containerLine(me.ctrl_arr[i], true, (i === 0), a_r_btn, true)
           } else {
-            me.containerLine(me.ctrl_arr[i], true, a_r_btn)
+            me.containerLine(me.ctrl_arr[i], true, (i === 0), a_r_btn, false)
           }
         } else {
-          me.containerLine(me.ctrl_arr[i], true)
+          me.containerLine(me.ctrl_arr[i], true, (i === 0))
         }
       }
       // 值为真则需要添加临时矩形边框
       if (t_r) {
-        me.containerLine(me.temporary_rect, true)
+        me.containerLine(me.temporary_rect, true, false)
       }
       me = null
     },
@@ -1311,7 +1331,7 @@ export default {
       // 保留边框层，更新元素图层
       let cont = me.mainStage_container.children[me.mainStage_container.children.length - 1]
       me.mainStage_container.removeChildren()
-      me.addCancleRect(me.mainStage_container)
+      // me.addCancleRect(me.mainStage_container)
       for (let i = 0; i < me.container_arr.length; i++) {
         // 按顺序渲染容器
         me.mainStage_container.addChild(me.container_arr[i].cont)
@@ -1323,8 +1343,7 @@ export default {
       const me = this
       let index_c = me.findCont(name)
       if (index_c !== -1) {
-        // 新增了取消面板所以index+1
-        me.mainStage_container.removeChildAt(index_c + 1)
+        me.mainStage_container.removeChildAt(index_c)
         me.container_arr.splice(index_c, 1)
         me.in_move = null
         me.sortContainerArr(true)
