@@ -294,7 +294,7 @@
     margin: 15px 0;
   }
 
-  /* 
+  /*
   .user_name,
   .logout {
     margin: 25px 0;
@@ -315,7 +315,7 @@
     margin: 15px 0;
   }
 
-  /* 
+  /*
   .user_name,
   .logout {
     margin: 20px 0;

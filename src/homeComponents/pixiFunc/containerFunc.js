@@ -1008,7 +1008,8 @@ export default {
         .on('mouseupoutside', me.onTemporaryEnd)
         .on('mouseup', me.onTemporaryEnd)
       container.addChild(rectangle)
-      // me.renderStage()
+      // 加入空白图层
+      me.renderStage()
       // 添加临时组合边框
       me.renderTLine(true)
       // 计算临时组合的偏差值用于移动
@@ -1209,7 +1210,8 @@ export default {
         .on('mouseup', me.onTemporaryEnd)
       container.addChild(rectangle)
       if (!render_create) {
-        // me.renderStage()
+        // 加入空白图层
+        me.renderStage()
         // 添加组合边框给组合矩形加按钮,不渲染临时边框
         me.renderTLine(false, true, name)
         me.showEdit('association')

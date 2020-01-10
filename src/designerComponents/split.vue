@@ -167,14 +167,14 @@ export default {
   mounted: function() {
     const me = this
     me.$set(me, 'page', 0)
-    //获取架构排列组合，然后按10个10个显示渲染
+    // 获取架构排列组合，然后按10个10个显示渲染
     me.getSplitPermutation(parseInt(me.structureData[0].data.id))
   },
   methods: {
     renderF: function(item, index) {
       const me = this
       if (item.path == 1 && item.template_id == 0) {
-        //执行渲染方法，回调成功后，提交渲染结果
+        // 执行渲染方法，回调成功后，提交渲染结果
         let replaceData = []
         for (let i = 0; i < item.combination.length; i++) {
           let d = {
@@ -186,7 +186,7 @@ export default {
         }
         me.$set(me, 'loading', true)
         let tempId = me.structureData[me.structureIndex].data.template_id
-        //渲染函数
+        // 渲染函数
         renderTemp.tempInit(renderTemp, { tempId: tempId, app: me.application, expand: false, split: true, splitData: replaceData }, res => {
           me.renderSubmit.bind(me)(res, item, index)
         })
@@ -241,7 +241,7 @@ export default {
         .then(function(response) {
           if (response.status == 200 && response.data.code == '200') {
             if (response.data.data.length > 0) {
-              me.$set(me, 'now_page_arr', []) //清空当前页数的数据
+              me.$set(me, 'now_page_arr', []) // 清空当前页数的数据
               me.$set(me, 'splitModelArr', [])
               me.$set(me, 'now_arr', response.data.data)
               me.separateF(me.getPermutationModelData)
@@ -288,7 +288,7 @@ export default {
       })
         .then(function(response) {
           if (response.status == 200 && response.data.code == '200') {
-            //加载此请求回来的数据，加到splitModelArr数组末端
+            // 加载此请求回来的数据，加到splitModelArr数组末端
             me.$set(me, 'splitModelArr', [...me.splitModelArr, ...response.data.data])
             me.$set(me, 'page', me.page + 1)
             me.$set(me, 'loading', false)
@@ -319,7 +319,7 @@ export default {
       }
 
       return new Promise(function(resolve, reject) {
-        if (typeof wantF == 'function' && end <= me.now_arr.length + 9) {
+        if (typeof wantF === 'function' && end <= me.now_arr.length + 9) {
           resolve(wantF)
         } else if (end > me.now_arr.length - 1) {
           reject('error')

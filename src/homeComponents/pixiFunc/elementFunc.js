@@ -1,4 +1,4 @@
-import { computed_func } from '@/homeComponents/pixiFunc/computational_function.js'
+import { computedFunc } from '@/homeComponents/pixiFunc/computedFunc.js'
 export default {
   methods: {
     onRightC: function (event) {
@@ -95,14 +95,11 @@ export default {
         that.deviationY = newPosition.y - that.parent.y
         me.containerLine(that, false, true)
         me.showEdit(that.type)
-        newPosition = null
       } else {
         // 删除之前的边框按钮图层，增加此对象的边框按钮
         me.containerLine(that, false, true, false, true)
         me.$set(me.edit_bar.btn, 'show', false)
       }
-      me = null
-      that = null
     },
     onDragStart: function (event) {
       let me = this
@@ -202,8 +199,6 @@ export default {
           me.normalStart(sprite, event.data)
         }
       }
-      me = null
-      sprite = null
     },
     onDragMove: function (event) {
       let me = this
@@ -216,7 +211,7 @@ export default {
               me.ctrl_arr[i].x = newPosition.x - me.ctrl_arr[i].deviationX
               me.ctrl_arr[i].y = newPosition.y - me.ctrl_arr[i].deviationY
               let param = [me.ctrl_arr[i].width / 2, me.ctrl_arr[i].height / 2, me.ctrl_arr[i].rotation]
-              param = computed_func.AFTER_ROTATE(param)
+              param = computedFunc.AFTER_ROTATE(param)
               // me.ctrl_arr[i].centerX = (me.ctrl_arr[i].vertexData[0] + me.ctrl_arr[i].vertexData[6]) / 2 - (me.window_w - me.canvas_width) / 2;
               // me.ctrl_arr[i].centerY = (me.ctrl_arr[i].vertexData[1] + me.ctrl_arr[i].vertexData[7]) / 2 - (me.window_h - me.canvas_height) / 2;
               me.ctrl_arr[i].centerX = me.ctrl_arr[i].x + parseFloat(param[0])
@@ -243,7 +238,7 @@ export default {
           me.temporary_rect.y = newPosition.y - me.temporary_rect.deviationY
           // 利用向量旋转计算出矩形中心点，如果临时组合未旋转则角度为0
           let param = [me.temporary_rect.width / 2, me.temporary_rect.height / 2, me.temporary_rect.rotation]
-          param = computed_func.AFTER_ROTATE(param)
+          param = computedFunc.AFTER_ROTATE(param)
           me.temporary_rect.centerX = me.temporary_rect.x + parseFloat(param[0])
           me.temporary_rect.centerY = me.temporary_rect.y + parseFloat(param[1])
           me.moveOutLine(me.temporary_rect.centerX, me.temporary_rect.centerY, me.temporary_rect)
@@ -330,30 +325,32 @@ export default {
       if (me.can_scale) {
         let e = event.data.getLocalPosition(me.mainStage_container)
         // 目前拉伸的到原点连线的长度
-        let n = computed_func.LENGTH_SIZE({
+        let n = computedFunc.LENGTH_SIZE({
           x: me.in_move.parent.position.x,
           y: me.in_move.parent.position.y
         }, e)
         // 计算缩放值，并改变元素移动边框和icon
         // let d_value = Math.abs(e.x - me.in_move.parent.position.x)
-        if (me.in_move.type == 'text') {
-          if (me.textTime) {
-            me.textTime = false
-            me.scaleAll(n, me.in_move.text_num)
-            me.$nextTick(() => {
-              me.textTime = true
-            })
-          }
-        } else {
-          me.scaleAll(n)
-        }
+        me.antiShake(me.scaleAll, n)()
         me.after_scale = true
         e = null
         n = null
       }
       // me = null
     },
-    scaleAll: function (n, text_num = 0) {
+    antiShake: function (func, n, time = 40) {
+      let textTime = null
+      return function () {
+        if (textTime) {
+          clearTimeout(textTime)
+          textTime = null
+        }
+        textTime = setTimeout(() => {
+          func(n)
+        }, time)
+      }
+    },
+    scaleAll: function (n) {
       let me = this
       // let dw = 2 * d_value
       if (n <= 0) {
@@ -372,7 +369,7 @@ export default {
       if (me.in_move.type == 'text') {
         let fs = me.in_move.ofonts * scale
         let newStyle = me.in_move.style.clone()
-        newStyle.wordWrapWidth = (fs + me.in_move.style.letterSpacing) * text_num
+        newStyle.wordWrapWidth = (fs + me.in_move.style.letterSpacing) * me.in_move.text_num
         newStyle.fontSize = Math.floor(fs)
         newStyle.lineHeight = me.in_move.style.fontSize + me.in_move.lineHeightM
         me.in_move.style = newStyle
@@ -608,7 +605,7 @@ export default {
       if (me.can_scale) {
         var e = event.data.getLocalPosition(me.mainStage_container)
         // 目前拉伸的到原点连线的长度
-        var n = computed_func.LENGTH_SIZE({
+        var n = computedFunc.LENGTH_SIZE({
           x: me.temporary_rect.centerX,
           y: me.temporary_rect.centerY
         }, e)
@@ -785,7 +782,7 @@ export default {
       let ctrl_arr = me.ctrl_arr
       temporary_rect.pivot.set(0)
       let param1 = [-temporary_rect.width / 2, -temporary_rect.height / 2, temporary_rect.rotation]
-      param1 = computed_func.AFTER_ROTATE(param1)
+      param1 = computedFunc.AFTER_ROTATE(param1)
       temporary_rect.x = parseFloat(param1[0]) + (temporary_rect.centerX)
       temporary_rect.y = parseFloat(param1[1]) + (temporary_rect.centerY)
       me.can_rotate = 0
@@ -796,7 +793,7 @@ export default {
           ctrl_arr[i].parent.pivot.set(0)
           let param
           param = [ctrl_arr[i].beforeRX - (temporary_rect.centerX), ctrl_arr[i].beforeRY - (temporary_rect.centerY), ctrl_arr[i].parent.rotation]
-          param = computed_func.AFTER_ROTATE(param)
+          param = computedFunc.AFTER_ROTATE(param)
           ctrl_arr[i].parent.x = parseFloat(param[0]) + (temporary_rect.centerX)
           ctrl_arr[i].parent.y = parseFloat(param[1]) + (temporary_rect.centerY)
           ctrl_arr[i].parent.rotation_num += ctrl_arr[i].parent.rotation // 记录父级旋转的角度，
@@ -806,7 +803,7 @@ export default {
           ctrl_arr[i].pivot.set(0)
           let param2
           param2 = [ctrl_arr[i].beforeRX - (temporary_rect.centerX), ctrl_arr[i].beforeRY - (temporary_rect.centerY), ctrl_arr[i].rotation - ctrl_arr[i].rotation_num]
-          param2 = computed_func.AFTER_ROTATE(param2)
+          param2 = computedFunc.AFTER_ROTATE(param2)
           ctrl_arr[i].x = parseFloat(param2[0]) + (temporary_rect.centerX)
           ctrl_arr[i].y = parseFloat(param2[1]) + (temporary_rect.centerY)
           ctrl_arr[i].rotation_num = ctrl_arr[i].rotation
@@ -882,7 +879,7 @@ export default {
       if (me.can_scale) {
         var e = event.data.getLocalPosition(me.mainStage_container)
         // 目前拉伸的到原点连线的长度
-        var n = computed_func.LENGTH_SIZE({
+        var n = computedFunc.LENGTH_SIZE({
           x: btn.pivotX,
           y: btn.pivotY
         }, e)
@@ -934,7 +931,7 @@ export default {
           // me.ctrl_arr[k].style.fontSize = fs;
           // me.$set(me.edit_bar.text, 'fontSize', fs)
           // me.ctrl_arr[k].style.lineHeight = me.ctrl_arr[k].style.fontSize + me.ctrl_arr[k].lineHeightM;
-          // 
+          //
           let fs = me.ctrl_arr[k].ofonts * scale
           me.ctrl_arr[k].style.wordWrapWidth = (fs + me.ctrl_arr[k].style.letterSpacing) * me.ctrl_arr[k].text_num
           me.ctrl_arr[k].style.fontSize = fs
@@ -1054,7 +1051,7 @@ export default {
           me.ctrl_arr[i].parent.pivot.set(0)
           let param
           param = [me.ctrl_arr[i].beforeRX - (me.ass_r_data.association_centerX), me.ctrl_arr[i].beforeRY - (me.ass_r_data.association_centerY), me.ctrl_arr[i].parent.rotation]
-          param = computed_func.AFTER_ROTATE(param)
+          param = computedFunc.AFTER_ROTATE(param)
           me.ctrl_arr[i].parent.x = parseFloat(param[0]) + (me.ass_r_data.association_centerX)
           me.ctrl_arr[i].parent.y = parseFloat(param[1]) + (me.ass_r_data.association_centerY)
           // me.ctrl_arr[i].parent.rotation_num += me.ctrl_arr[i].parent.rotation; //记录父级旋转的角度，
@@ -1064,7 +1061,7 @@ export default {
           me.ctrl_arr[i].pivot.set(0)
           let param2
           param2 = [-me.ctrl_arr[i].width / 2, -me.ctrl_arr[i].height / 2, me.ctrl_arr[i].rotation]
-          param2 = computed_func.AFTER_ROTATE(param2)
+          param2 = computedFunc.AFTER_ROTATE(param2)
           me.ctrl_arr[i].x = parseFloat(param2[0]) + (me.ass_r_data.association_centerX)
           me.ctrl_arr[i].y = parseFloat(param2[1]) + (me.ass_r_data.association_centerY)
           me.ctrl_arr[i].rotation_num = me.ctrl_arr[i].rotation

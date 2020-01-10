@@ -144,7 +144,7 @@
   color: red
 }
 .imgDiv{
-  position: relative; 
+  position: relative;
   height: 100%;
 }
 .el-upload-list__item-thumbnail{
@@ -182,7 +182,7 @@ export default {
       file_id: '',
       setNew: false,
       edit_arc: false,
-      newAdd: true, //判断是新上传还是，修改之前的信息
+      newAdd: true // 判断是新上传还是，修改之前的信息
 
     }
   },
@@ -197,16 +197,16 @@ export default {
     }
   },
   created: function() {
-    
+
   },
   mounted: function() {
-    const me = this;
-    //获取用户之前上传的图片
+    const me = this
+    // 获取用户之前上传的图片
     me.getImg()
   },
   methods: {
     getImg: function() {
-      const me = this;
+      const me = this
       let id = me.user_data.id
       axios({
         method: 'post',
@@ -216,43 +216,43 @@ export default {
         }
       }).then(function(response) {
         if (response.data.code == '200') {
-          let imgA = response.data.data;
+          let imgA = response.data.data
           for (let i = 0; i < imgA.length; i++) {
-            imgA[i].file_id = imgA[i].id;
+            imgA[i].file_id = imgA[i].id
             imgA[i].url = `${me.api.images}${imgA[i].path}`
           }
-          me.$nextTick(()=>{
+          me.$nextTick(() => {
             me.$set(me, 'fileList', imgA)
           })
         }
       }).catch(function(error) {
 
-      });
+      })
     },
     showArc: function() {
-      const me = this;
+      const me = this
       me.$set(me, 'edit_arc', !me.edit_arc)
     },
     before_upload: function(file) {
       this.$set(this.mydata, 'upload_file_once', file)
     },
     inputMsg: function(response, file, fileList) {
-      const me = this;
+      const me = this
       if (response && response.code == 0) {
-        //上传文件成功
+        // 上传文件成功
         me.$set(me, 'setNew', true)
         me.$set(me, 'file_id', response.data.file_id)
       }
     },
     handleData: function(file) {
-      //修改上传图片的数据
+      // 修改上传图片的数据
       const me = this
       console.log(file)
       if (file.response) {
         me.$set(me, 'file_id', file.response.data.file_id)
       } else if (file.file_id) {
         me.$set(me, 'file_id', file.file_id)
-        //重置属性
+        // 重置属性
         if (file.size) {
           me.$set(me.file, 'size', file.size)
         } else {
@@ -277,14 +277,14 @@ export default {
       me.$set(me, 'setNew', true)
     },
     cancelBlock: function() {
-      //取消输入数据面板
-      const me = this;
+      // 取消输入数据面板
+      const me = this
       // if(me.newAdd)me.beforeList.splice(-1,1)
       me.$set(me, 'setNew', false)
     },
     saveUpload: function() {
-      //设置参数
-      const me = this;
+      // 设置参数
+      const me = this
       axios({
         method: 'post',
         url: me.api.change_file_rule,
@@ -297,21 +297,21 @@ export default {
         me.$message({
           message: '图片参数设置成功',
           type: 'success'
-        });
+        })
         me.$set(me, 'setNew', false)
       }).catch(function(error) {
 
-      });
+      })
     },
     handleRemove(file) {
       me.$message({
         message: '该图片已经被添加，锁定',
         type: 'warning'
-      });
+      })
     },
     handlePictureCardPreview(file) {
-      this.dialogImageUrl = file.url;
-      this.dialogVisible = true;
+      this.dialogImageUrl = file.url
+      this.dialogVisible = true
     },
     handleDownload (file) {
       console.log(file)

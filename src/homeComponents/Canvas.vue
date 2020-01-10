@@ -709,9 +709,9 @@ import * as PIXI from 'pixi.js'
 import { mapState, mapActions, mapGetters } from 'vuex'
 import bus from '@/eventBus.js'
 import axios from 'axios'
-import element_func from '@/homeComponents/pixiFunc/element_function.js'
-import container_func from '@/homeComponents/pixiFunc/container_function.js'
-import other_func from '@/homeComponents/pixiFunc/other_function.js'
+import elementFunc from '@/homeComponents/pixiFunc/elementFunc.js'
+import containerFunc from '@/homeComponents/pixiFunc/containerFunc.js'
+import otherFunc from '@/homeComponents/pixiFunc/otherFunc.js'
 import scale from '../assets/scale.png'
 import rotate from '../assets/rotate.png'
 import stretch from '../assets/stretch.png'
@@ -720,7 +720,7 @@ document.oncontextmenu = function() {
   event.returnValue = false
 }
 export default {
-  mixins: [element_func, container_func, other_func],
+  mixins: [elementFunc, containerFunc, otherFunc],
   name: 'Canvas',
   props: {
     msg: String
@@ -853,7 +853,7 @@ export default {
           { name: '方正粗雅宋扁繁体', value: 'fzcysbft' },
           { name: '方正吕建德楷体', value: 'fzljdkt' },
           { name: '方正黑体_GBK', value: 'fzht_gbk' },
-          { name: '方正大标宋_GBK', value: 'fzdbs_gbk' },
+          { name: '方正大标宋_GBK', value: 'fzdbs' },
           { name: '方正大标宋简体', value: 'fzdbsjt' },
           { name: '方正青刻宋体', value: 'fzqkst' },
           { name: '方正特粗光辉简体', value: 'fztcghjt' },
@@ -879,7 +879,6 @@ export default {
           { name: '游明朝体', value: 'ymct' },
           { name: '华文楷体', value: 'hwkt' },
           { name: 'Herculanum', value: 'Herculanum' }
-
           // { name: "凌渡鲲鹏简", value: "REEJI-CHAO-KunPengGB" }
         ],
         align: [
@@ -931,7 +930,7 @@ export default {
           ]
         }
       ],
-      textTime: true,
+      // textTime: true,
       tempRoleMsg: { main: 0, logo: 0, title: 0, subtitle: 0, bg: 0 },
       arc_obj: {
         arc_title: '',
@@ -967,15 +966,16 @@ export default {
       user_data: state => state.user.user_data,
       new_structure_id: state => state.homeCanvas.new_structure_id,
       structure_position: state => state.homeCanvas.structure_position,
-      api: state => state.api,
-      ffName: function() {
-        for (let item of this.edit_bar.fontFamily) {
-          if (item.value == this.edit_bar.text.fontFamily) {
-            return item.name
-          }
+      api: state => state.api
+    }),
+    ffName: function() {
+      for (let item of this.edit_bar.fontFamily) {
+        if (item.value == this.edit_bar.text.fontFamily) {
+          return item.name
         }
       }
-    }),
+      return ''
+    },
     key_ctrlf: function() {
       let second = 91
       // 判断内核
@@ -1092,7 +1092,7 @@ export default {
       antialias: 1
     })
     bus
-      .$off('add_element_func')
+      .$off('add_elementFunc')
       .$off('layer_click')
       .$off('addPopShow')
       .$off('change_text')
@@ -1105,7 +1105,7 @@ export default {
       me.$destroy()
     })
     // 清空，初始化数据
-    bus.$on('add_element_func', function(data) {
+    bus.$on('add_elementFunc', function(data) {
       // 添加元素进canvas
       if (data.src !== '' && data.text == '') {
         me.newContainer(data, false, function() {
@@ -1202,16 +1202,7 @@ export default {
       // 快捷键监听
       me.moveInMove('right')
     }
-    window.onresize = function() {
-      var target = this
-      if (target.resizeFlag) {
-        clearTimeout(target.resizeFlag)
-      }
-      target.resizeFlag = setTimeout(function() {
-        me.resetCanvas()
-        target.resizeFlag = null
-      }, 100)
-    }
+    window.onresize = me.onresize()
     setTimeout(() => {
       if (me.tempId || me.structure_id) {
         me.getTemplateData()
@@ -1322,10 +1313,10 @@ export default {
       })
     },
     // setRole: function(content) {
-    //   other_func.setRole.bind(this)(content)
+    //   otherFunc.setRole.bind(this)(content)
     // },
     // setPosition: function(num) {
-    //   other_func.setPosition.bind(this)(num)
+    //   otherFunc.setPosition.bind(this)(num)
     // },
     getNewFont: function(fontName, text) {},
     mouldImg: function() {
@@ -1651,19 +1642,6 @@ export default {
       }
       return Promise.all(allArr)
     },
-    // json_f: function(obj) {
-    //   return other_func.json_f.bind(this)(obj)
-    // },
-    // obj_f: function(json) {
-    //   return other_func.obj_f.bind(this)(json)
-    // },
-    // renderTemplate: function(firstLoad = false) {
-    //   const me = this
-    //   container_func.renderTemplate.bind(me)(firstLoad)
-    // },
-    // afterLoad: function(data, firstLoad) {
-    //   container_func.afterLoad.bind(this)(data, firstLoad)
-    // },
     initPixiApp: function() {
       const me = this
       // 加载一些必要的配图
@@ -1838,28 +1816,6 @@ export default {
         // me.initPixiApp()
       }
     },
-    // resetCanvas: function() {
-    //   other_func.resetCanvas.bind(this)()
-    // },
-    // pushActiveLog: function(permit = false) {
-    //   other_func.pushActiveLog.bind(this)(permit)
-    // },
-    // renderStage: function() {
-    //   const me = this
-    //   container_func.renderStage.bind(me)()
-    // },
-    // addCancleRect: function(mainStage) {
-    //   container_func.addCancleRect.bind(this)(mainStage)
-    // },
-    // outLine: function() {
-    //   container_func.outLine.bind(this)()
-    // },
-    // maskInit: function() {
-    //   container_func.maskInit.bind(this)()
-    // },
-    // cancelInMove: function() {
-    //   container_func.cancelInMove.bind(this)()
-    // },
     cancel_something: function(event) {
       const me = this
       me.$set(me.right_block, 'show', false)
@@ -2299,20 +2255,7 @@ export default {
       let [x, y] = xy === 'x' ? [me.edit_bar.skewX, me.in_move.skew.y] : [me.in_move.skew.x, me.edit_bar.skewY]
       me.in_move.skew.set(x, y)
     },
-    // locationMove: function(way, d_value = 0) {
-    //   other_func.locationMove.bind(this)(way, d_value)
-    // },
-    // newContainer: function(set_data, render_add, func = () => {}) {
-    //   container_func.newContainer.bind(this)(set_data, render_add, func)
-    // },
-    // addContainer: function(set_data, position = { x: this.canvas_width / 2, y: this.canvas_height / 2 }) {
-    //   container_func.addContainer.bind(this)(set_data, position)
-    // },
-    // containerArrAdd: function(m_comp_name, container, id) {
-    //   container_func.containerArrAdd.bind(this)(m_comp_name, container, id)
-    // },
     findFinalIndex: function(m_comp_name) {
-      // 递归函数好像放不进container_func
       const me = this
       let final_index = -100 // 相同模块中最后一个元素的index
       let len = me.project_m_comp.length - 1
@@ -2343,45 +2286,6 @@ export default {
         }
       }
     },
-    // loadSprite: function(set_data, render_add, func) {
-    //   container_func.loadSprite.bind(this)(set_data, render_add, func)
-    // },
-    // loadSvgImg: function(src, sprite, my_set_data, render_add, func) {
-    //   container_func.loadSvgImg.bind(this)(src, sprite, my_set_data, render_add, func)
-    // },
-    // addImg: function(sprite, set_data, render_add) {
-    //   container_func.addImg.bind(this)(sprite, set_data, render_add)
-    // },
-    // updateSvgScale: function(obj) {
-    //   element_func.updateSvgScale.bind(this)(obj)
-    // },
-    // newContainerText: function(set_data, render_add, saveLog = true) {
-    //   container_func.newContainerText.bind(this)(set_data, render_add, saveLog)
-    // },
-    // addText: function(set_data, render_add, saveLog) {
-    //   container_func.addText.bind(this)(set_data, render_add, saveLog)
-    // },
-    // ruler: function() {
-    //   container_func.ruler.bind(this)()
-    // },
-    // containerLine: function(obj, t_a, a_r_btn = false, color = 0x87ceff, lock = false) {
-    //   container_func.containerLine.bind(this)(obj, t_a, a_r_btn, color, lock)
-    // },
-    // createBorder: function(obj, t_a, a_r_btn, show_btn = true, color = 0x87ceff) {
-    //   container_func.createBorder.bind(this)(obj, t_a, a_r_btn, show_btn, color)
-    // },
-    // addScaleIcon: function(outLineC, obj, t_a, a_r_btn = false) {
-    //   container_func.addScaleIcon.bind(this)(outLineC, obj, t_a, a_r_btn)
-    // },
-    // addRotateIcon: function(outLineC, obj, t_a, a_r_btn = false) {
-    //   container_func.addRotateIcon.bind(this)(outLineC, obj, t_a, a_r_btn)
-    // },
-    // addStretchIcon: function(outLineC, obj) {
-    //   container_func.addStretchIcon.bind(this)(outLineC, obj)
-    // },
-    // onRightC: function(event) {
-    //   element_func.onRightC.bind(this)(event)
-    // },
     onRightFunc: function(f_parm, event = null) {
       const me = this
       if (f_parm.type == 1) {
@@ -2433,10 +2337,10 @@ export default {
       }
     },
     // onRightDelete: function() {
-    //   container_func.onRightDelete.bind(this)()
+    //   containerFunc.onRightDelete.bind(this)()
     // },
     // deleteSomeone: function(name, render, callback) {
-    //   container_func.deleteSomeone.bind(this)(name, render, callback)
+    //   containerFunc.deleteSomeone.bind(this)(name, render, callback)
     // },
     onRightAss: function() {
       const me = this
@@ -2445,7 +2349,7 @@ export default {
       me.$set(me.right_block, 'show', false)
     },
     // arrToAss: function(element_arr, association_id = -1, render_create = false) {
-    //   other_func.arrToAss.bind(this)(element_arr, association_id, render_create)
+    //   otherFunc.arrToAss.bind(this)(element_arr, association_id, render_create)
     // },
     onRight_unAss: function() {
       const me = this
@@ -2460,162 +2364,6 @@ export default {
       me.$set(me.right_block, 'show', false)
       me.cancelInMove() // 取消右侧编辑栏
     },
-    // onDragStart: function(event) {
-    //   element_func.onDragStart.bind(this)(event)
-    // },
-    // onDragMove: function(event) {
-    //   element_func.onDragMove.bind(this)(event)
-    // },
-    // onDragEnd: function(event) {
-    //   element_func.onDragEnd.bind(this)(event)
-    // },
-    // onScaleStart: function(event) {
-    //   element_func.onScaleStart.bind(this)(event)
-    // },
-    // onScaleMove: function(btn, event) {
-    //   element_func.onScaleMove.bind(this)(btn, event)
-    // },
-    // onScaleEnd: function() {
-    //   element_func.onScaleEnd.bind(this)()
-    // },
-    // onRotateStart: function() {
-    //   element_func.onRotateStart.bind(this)()
-    // },
-    // onRotateMove: function(event) {
-    //   element_func.onRotateMove.bind(this)(event)
-    // },
-    // onRotateEnd: function() {
-    //   element_func.onRotateEnd.bind(this)()
-    // },
-    // onTemporaryStart: function(event) {
-    //   element_func.onTemporaryStart.bind(this)(event)
-    // },
-    // onTemporaryEnd: function() {
-    //   element_func.onTemporaryEnd.bind(this)()
-    // },
-    // onTScaleStart: function(event) {
-    //   element_func.onTScaleStart.bind(this)(event)
-    // },
-    // onTScaleMove: function(btn, event) {
-    //   element_func.onTScaleMove.bind(this)(btn, event)
-    // },
-    // onTScaleEnd: function() {
-    //   element_func.onTScaleEnd.bind(this)()
-    // },
-    // onTRotateStart: function(event = null) {
-    //   element_func.onTRotateStart.bind(this)(event)
-    // },
-    // onTRotateMove: function(event) {
-    //   element_func.onTRotateMove.bind(this)(event)
-    // },
-    // onTRotateEnd: function() {
-    //   element_func.onTRotateEnd.bind(this)()
-    // },
-    // onAssociationStart: function(event, right = false, lock = false) {
-    //   element_func.onAssociationStart.bind(this)(event, right, lock)
-    // },
-    // onAScaleStart: function(event) {
-    //   element_func.onAScaleStart.bind(this)(event)
-    // },
-    // onAScaleMove: function(btn, event) {
-    //   element_func.onAScaleMove.bind(this)(btn, event)
-    // },
-    // onAScaleEnd: function() {
-    //   element_func.onAScaleEnd.bind(this)()
-    // },
-    // onARotateStart: function(event = null) {
-    //   element_func.onARotateStart.bind(this)(event)
-    // },
-    // onARotateMove: function(btn = null, event = null) {
-    //   element_func.onARotateMove.bind(this)(btn, event)
-    // },
-    // onARotateEnd: function(btn = null, event = null) {
-    //   element_func.onARotateEnd.bind(this)(btn, event)
-    // },
-    // forChangeAssociation: function(ass_id = undefined) {
-    //   element_func.forChangeAssociation.bind(this)(ass_id)
-    // },
-    // onStretchStart: function(event) {
-    //   element_func.onStretchStart.bind(this)(event)
-    // },
-    // onStretchMove: function(event) {
-    //   element_func.onStretchMove.bind(this)(event)
-    // },
-    // onStretchEnd: function() {
-    //   element_func.onStretchEnd.bind(this)()
-    // },
-    // normalStart: function(that, data) {
-    //   element_func.normalStart.bind(this)(that, data)
-    // },
-    // ctrlDeviation: function(data, t_r, tem_move = true) {
-    //   element_func.ctrlDeviation.bind(this)(data, t_r, tem_move)
-    // },
-    // rotateOBj: function(num, x) {
-    //   element_func.rotateOBj.bind(this)(num, x)
-    // },
-    // tRotateOBj: function(num, x) {
-    //   element_func.tRotateOBj.bind(this)(num, x)
-    // },
-    // aRotateOBj: function(num, x, centerX) {
-    //   element_func.aRotateOBj.bind(this)(num, x, centerX)
-    // },
-    // scaleAll: function(n, d_value, text_num = 0) {
-    //   element_func.scaleAll.bind(this)(n, d_value, text_num)
-    // },
-    // tScaleAll: function(n, that, present_w) {
-    //   element_func.tScaleAll.bind(this)(n, that, present_w)
-    // },
-    // aScaleAll: function(n, that) {
-    //   element_func.aScaleAll.bind(this)(n, that)
-    // },
-    // scaleTextEnd(text) {
-    //   element_func.scaleTextEnd.bind(this)(text)
-    // },
-    // moveIcon: function(obj) {
-    //   element_func.moveIcon.bind(this)(obj)
-    // },
-    // removeLine: function(id = null) {
-    //   container_func.removeLine.bind(this)(id)
-    // },
-    // clearTemporary: function() {
-    //   container_func.clearTemporary.bind(this)()
-    // },
-    // findCont: function(containerName) {
-    //   return other_func.findCont.bind(this)(containerName)
-    // },
-    // sortContainerArr: function(clear_rotation) {
-    //   container_func.sortContainerArr.bind(this)(clear_rotation)
-    // },
-    // findMinAndAdd: function(data, a_length = 0, a_name = '') {
-    //   container_func.findMinAndAdd.bind(this)(data, a_length, a_name)
-    // },
-    // createAssociation: function(name, m_comp_name, render_create) {
-    //   container_func.createAssociation.bind(this)(name, m_comp_name, render_create)
-    // },
-    // createAssociationRect: function(container, name, render_create) {
-    //   container_func.createAssociationRect.bind(this)(container, name, render_create)
-    // },
-    // clearTemAss: function(clear_rotation, clear_association = false) {
-    //   container_func.clearTemAss.bind(this)(clear_rotation, clear_association)
-    // },
-    // findRect: function(container, data, tem_move) {
-    //   container_func.findRect.bind(this)(container, data, tem_move)
-    // },
-    // renderTLine: function(t_r, a_r_btn = false, name = '', lock = false) {
-    //   container_func.renderTLine.bind(this)(t_r, a_r_btn, name, lock)
-    // },
-    // aSingleClick: function(that, data) {
-    //   element_func.aSingleClick.bind(this)(that, data)
-    // },
-    // aSingleClickBorder: function(ass_name) {
-    //   element_func.aSingleClickBorder.bind(this)(ass_name)
-    // },
-    // moveOutLine: function(x, y, obj) {
-    //   other_func.moveOutLine.bind(this)(x, y, obj)
-    // },
-    // changeAssociation: function(obj) {
-    //   other_func.changeAssociation.bind(this)(obj)
-    // },
     addACtrlarr: function(a_name) {
       const me = this
       for (let i = 0; i < me.container_arr.length; i++) {
@@ -2653,10 +2401,10 @@ export default {
       return ass_name_arr.filter(item => item !== name)
     },
     // updateLayer: function() {
-    //   other_func.updateLayer.bind(this)()
+    //   otherFunc.updateLayer.bind(this)()
     // },
     // moveActiveLog: function(way) {
-    //   container_func.moveActiveLog.bind(this)(way)
+    //   containerFunc.moveActiveLog.bind(this)(way)
     // },
     show_click: function(id) {
       const me = this
@@ -2693,15 +2441,6 @@ export default {
         //
       }
     },
-    // moveStructureText: function() {
-    //   other_func.moveStructureText.bind(this)()
-    // },
-    // lockFunc: function() {
-    //   other_func.lockFunc.bind(this)()
-    // },
-    // unlockFunc: function() {
-    //   other_func.unlockFunc.bind(this)()
-    // },
     moveIndex: function(up, max = '') {
       const me = this
       if (me.in_move) {
@@ -2710,12 +2449,6 @@ export default {
         me.upDownMove(me.findCont(me.ctrl_arr[0].name), up, max)
       }
     },
-    // upDownMove: function(index, up, max = '') {
-    //   container_func.upDownMove.bind(this)(index, up, max)
-    // },
-    // renderUpDown: function() {
-    //   container_func.renderUpDown.bind(this)()
-    // },
     toImage: function(returnFile = false) {
       if (!returnFile) {
         this.toImage2(returnFile)
@@ -2723,12 +2456,6 @@ export default {
         return this.toImage2(returnFile)
       }
     },
-    // addImgTwo: function(cont, img_arr) {
-    //   return other_func.addImgTwo.bind(this)(cont, img_arr)
-    // },
-    // downloadImg: function(imgsrc) {
-    //   other_func.downloadImg.bind(this)(imgsrc)
-    // },
     canvasToimg: function() {
       const me = this
       let img = me.p_app.renderer.plugins.extract.base64(me.p_app.stage)
@@ -2776,18 +2503,6 @@ export default {
       const me = this
       me.$set(me, 'addPop', show)
     },
-    // canvasScale: function(type) {
-    //   other_func.canvasScale.bind(this)(type)
-    // },
-    // showRuler: function() {
-    //   other_func.showRuler.bind(this)()
-    // },
-    // idToImg: function(idArr) {
-    //   return other_func.idToImg.bind(this)(idArr)
-    // },
-    // dataURLtoFile: function(dataurl, filename) {
-    //   return other_func.dataURLtoFile.bind(this)(dataurl, filename)
-    // },
     changeImage: function() {
       const me = this
       me.hide_edit_f()
@@ -2816,24 +2531,6 @@ export default {
       me.$set(me, 'active_index', me.active_log.length - 1)
       me.renderTemplate()
     }
-    // renderARC: function(titleType, wordArr, textReplace = null) {
-    //   container_func.renderARC.bind(this)(titleType, wordArr, textReplace)
-    // },
-    // fontPost: function(data) {
-    //   return container_func.fontPost.bind(this)(data)
-    // },
-    // getAllfontFamily: function(font_family) {
-    //   return container_func.getAllfontFamily.bind(this)(font_family)
-    // },
-    // getfontFamilyBack: function(font_family) {
-    //   return other_func.getfontFamilyBack.bind(this)(font_family)
-    // },
-    // textReverse: function(text = null) {
-    //   other_func.textReverse.bind(this)(text)
-    // }
-    // changeSaveRule: function(bool){
-    //   this.saveTextRule=bool
-    // }
   },
   components: {
     addPop: () => import('./addPop.vue'),
