@@ -16,6 +16,13 @@ module.exports = {
         pathRewrite: {
           '^/api': ''
         }
+      },
+      '/testApi': {
+        target: '//ht.idealead.hbindex.com/apii', // API测试服务器的地址
+        changeOrigin: true,
+        pathRewrite: {
+          '^/testApi': ''
+        }
       }
     }
   },

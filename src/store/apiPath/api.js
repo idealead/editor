@@ -1,4 +1,4 @@
-export const apifile = {
+const apifile = {
   // ***************************************************designerCenter页面以及其子组件
   // 获取分裂架构列表
   all_framework_info: '/framework/all_framework_info',
@@ -86,3 +86,10 @@ export const apifile = {
   get_user_info: '/User/get_user_info'
   // ***************************************************home(canvas)页面以及其子组件
 }
+if (process.env.NODE_ENV === 'production') {
+  apifile.images = 'http://ht.idealead.hbindex.com/uploadFiles/images/'
+  apifile.upload_file_once = 'http://ht.idealead.hbindex.com/api/files/upload_file_once/author_id/'
+} else {
+  // 测试和本地环境
+}
+export { apifile }

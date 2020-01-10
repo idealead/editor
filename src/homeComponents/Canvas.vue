@@ -1092,7 +1092,7 @@ export default {
       antialias: 1
     })
     bus
-      .$off('add_elementFunc')
+      .$off('add_element_func')
       .$off('layer_click')
       .$off('addPopShow')
       .$off('change_text')
@@ -1105,7 +1105,7 @@ export default {
       me.$destroy()
     })
     // 清空，初始化数据
-    bus.$on('add_elementFunc', function(data) {
+    bus.$on('add_element_func', function(data) {
       // 添加元素进canvas
       if (data.src !== '' && data.text == '') {
         me.newContainer(data, false, function() {
