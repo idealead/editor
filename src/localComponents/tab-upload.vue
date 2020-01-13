@@ -67,46 +67,46 @@ export default {
   data: function() {
     return {
       fileList: {
-        list:[{ name: 'food.jpeg', src: "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1343015815,2335192405&fm=26&gp=0.jpg",url: "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1343015815,2335192405&fm=26&gp=0.jpg", id: 'qweqweq' }, { name: 'food2.jpeg', url: require('../assets/canvas/Lighthouse.jpg'),src: require('../assets/canvas/Lighthouse.jpg') }]
+        list: [{ name: 'food.jpeg', src: 'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1343015815,2335192405&fm=26&gp=0.jpg', url: 'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1343015815,2335192405&fm=26&gp=0.jpg', id: 'qweqweq' }, { name: 'food2.jpeg', url: require('../assets/canvas/Lighthouse.jpg'), src: require('../assets/canvas/Lighthouse.jpg') }]
       },
       dialogImageUrl: '',
       dialogVisible: false,
       disabled: false,
-      mydata:{
-        upload_file_once:{}
+      mydata: {
+        upload_file_once: {}
       }
-    };
+    }
   },
   methods: {
-    handleRemove:function(file) {
-      const me = this;
-      let u_id = file.uid;
-      let list = me.fileList.list.filter(item => item.uid != u_id);
+    handleRemove: function(file) {
+      const me = this
+      let u_id = file.uid
+      let list = me.fileList.list.filter(item => item.uid != u_id)
       me.$set(me.fileList, 'list', list)
     },
-    handlePictureCardPreview:function(file) {
-      this.dialogImageUrl = file.url;
-      this.dialogVisible = true;
+    handlePictureCardPreview: function(file) {
+      this.dialogImageUrl = file.url
+      this.dialogVisible = true
     },
-    add_element:function(file) {
-      const me = this;
+    add_element: function(file) {
+      const me = this
       let id = `upload_${(new Date()).valueOf()}`
       let data = {
         id: id,
         src: file.src,
         text: ''
       }
-      //通知side-block打开元素模块分类选择
+      // 通知side-block打开元素模块分类选择
       me.$emit('add-e', data)
     },
-    on_success:function(response, file, fileList) {
-        file.src='http://cyrd.intech.gdinsight.com'+response.data.savepath
-        this.$set(this.fileList, 'list', fileList)
+    on_success: function(response, file, fileList) {
+      file.src = 'http://cyrd.intech.gdinsight.com' + response.data.savepath
+      this.$set(this.fileList, 'list', fileList)
     },
-    before_upload:function(file) {
+    before_upload: function(file) {
       this.$set(this.mydata, 'upload_file_once', file)
     }
   }
-};
+}
 
 </script>

@@ -1,12 +1,12 @@
-export const computed_func = {
-  name: 'computed_func',
-  LENGTH_SIZE: function (i, e) {
+export const computedFunc = {
+  name: 'computedFunc',
+  LENGTH_SIZE: function(i, e) {
     var n = e.x - i.x
     var t = e.y - i.y
     var a = Math.sqrt(n * n + t * t)
     return a
   },
-  AFTER_ROTATE: function (param) {
+  AFTER_ROTATE: function(param) {
     // 此方法为逆时针旋转，顺时针时角度要为负
     var x = param[0]
     var y = param[1]

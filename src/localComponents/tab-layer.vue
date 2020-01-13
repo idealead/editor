@@ -38,32 +38,32 @@
 </style>
 <script type="text/javascript">
 import { mapState, mapActions, mapGetters } from 'vuex'
-import bus from "@/eventBus.js"
+import bus from '@/eventBus.js'
 export default {
-    name: 'tab-layer',
-    props: {
-        msg: String //例子
-    },
-    computed: {},
-    data: function() {
-        return {
-            layer: {
-                layer: []
-            }
-        }
-    },
-    created: function() {
-        const me = this;
-            bus.$on('update-layer', function(data) {
-            	data=data.reverse();
-                me.$set(me.layer, 'layer', data)
-            })
-    },
-    methods: {
-        click_in_move:function(id){
-            const me=this;
-            bus.$emit('layer_click',id)
-        }
+  name: 'tab-layer',
+  props: {
+    msg: String // 例子
+  },
+  computed: {},
+  data: function() {
+    return {
+      layer: {
+        layer: []
+      }
     }
-};
+  },
+  created: function() {
+    const me = this
+    bus.$on('update-layer', function(data) {
+            	data = data.reverse()
+      me.$set(me.layer, 'layer', data)
+    })
+  },
+  methods: {
+    click_in_move: function(id) {
+      const me = this
+      bus.$emit('layer_click', id)
+    }
+  }
+}
 </script>

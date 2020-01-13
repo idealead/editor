@@ -2,6 +2,7 @@
 var ImageminPlugin = require('imagemin-webpack-plugin').default
 module.exports = {
   publicPath: './',
+
   devServer: {
     open: true, // 是否自动弹出浏览器页面
     host: 'localhost',
@@ -15,10 +16,19 @@ module.exports = {
         pathRewrite: {
           '^/api': ''
         }
+      },
+      '/testApi': {
+        target: 'http://dev.cyrd.gdinsight.com/api', // API测试服务器的地址
+        changeOrigin: true,
+        pathRewrite: {
+          '^/testApi': ''
+        }
       }
     }
   },
+
   lintOnSave: true,
+
   configureWebpack: config => {
     if (process.env.NODE_ENV === 'production') {
       // config.optimization.minimizer[0].options.terserOptions.compress.warnings = false

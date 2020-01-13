@@ -401,17 +401,32 @@ export default {
         .then(function(response) {
           if (response.data.code == '200') {
             let imgA = response.data.data
+            let axiosAll = []
             for (let i = 0; i < imgA.length; i++) {
+              // axiosAll.push(me.loadimg(`${me.api.images}${imgA[i].path}`))
               imgA[i].file_id = imgA[i].id
               imgA[i].url = `${me.api.images}${imgA[i].path}`
               imgA[i].src = `${me.api.images}${imgA[i].path}`
-              imgA[i].name = 'qwe'
+              imgA[i].name = 'img'
             }
             imgA.reverse()
-            me.$set(me.fileList, 'list', imgA)
+            axios.all(axiosAll).then(()=>{
+              me.$set(me.fileList, 'list', imgA)
+            })
           }
         })
         .catch(function() {})
+    },
+    loadimg: function(src) {
+      // 用于canvas图片跨域的，测试用
+      return axios({
+        method: 'get',
+        url: src,
+        headers: {}
+      }).then(res => {})
+      // let img = new Image()
+      // img.crossOrigin = 'anonymous'
+      // img.src = src
     },
     closePop: function() {
       const me = this

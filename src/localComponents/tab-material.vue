@@ -124,7 +124,7 @@ import { mapState, mapActions, mapGetters } from 'vuex'
 export default {
   name: 'tab-material',
   props: {
-    msg: String //例子
+    msg: String // 例子
   },
   computed: {
     ...mapState({
@@ -158,10 +158,10 @@ export default {
       svg_kind: [{
         src: require('../assets/canvas/location.svg'),
         id: 'img7'
-      },{
+      }, {
         src: require('../assets/canvas/svg.svg'),
         id: 'img8'
-      },{
+      }, {
         src: require('../assets/canvas/svg1.svg'),
         id: 'img9'
       }]
@@ -173,24 +173,24 @@ export default {
   },
   methods: {
     kind_click_f: function(name) {
-      const me = this;
+      const me = this
       me.$set(me.material_kind, 'name', name)
     },
     add_element: function(id, src) {
-      const me = this;
+      const me = this
       id = `${id}_${(new Date()).valueOf()}`
       let data = {
         id: id,
         src: src,
         text: ''
       }
-      //通知side-block打开元素模块分类选择
+      // 通知side-block打开元素模块分类选择
       me.$emit('add-e', data)
     }
   },
   components: {
 
   }
-};
+}
 
 </script>

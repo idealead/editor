@@ -89,7 +89,7 @@ export default {
       if (tempId) me.$store.dispatch('changeTempIdFunc', tempId)
 
       let user_id = parseInt(me.$route.query.user_id)
-      if (user_id&&me.user_type == 'client') {
+      if (user_id && me.user_type == 'client') {
         // 获取用户信息
         axios({
           methods: 'get',
@@ -99,7 +99,7 @@ export default {
             id: user_id,
             name: res.data.data.user_name
           })
-        }).catch(()=>{
+        }).catch(() => {
           me.$message.error('获取用户信息失败，请刷新重试')
         })
       }
@@ -109,46 +109,52 @@ export default {
       if (token) me.$store.dispatch('ChangeRenderFunc', { key: 'token', value: token })
 
       let changeTitle = me.$route.query.changeTitle
-      if (changeTitle)
+      if (changeTitle) {
         me.$store.dispatch('ChangeRenderFunc', {
           key: 'changeTitle',
           value: changeTitle
         })
+      }
 
       let changeSubtitle = me.$route.query.changeSubtitle
-      if (changeSubtitle)
+      if (changeSubtitle) {
         me.$store.dispatch('ChangeRenderFunc', {
           key: 'changeSubtitle',
           value: changeSubtitle
         })
+      }
 
       let changeLogo = me.$route.query.changeLogo
-      if (changeLogo)
+      if (changeLogo) {
         me.$store.dispatch('ChangeRenderFunc', {
           key: 'changeLogo',
           value: changeLogo
         })
+      }
 
       let changeMain = me.$route.query.changeMain
-      if (changeMain)
+      if (changeMain) {
         me.$store.dispatch('ChangeRenderFunc', {
           key: 'changeMain',
           value: changeMain
         })
+      }
 
       let logoFileId = me.$route.query.logoFileId
-      if (logoFileId)
+      if (logoFileId) {
         me.$store.dispatch('ChangeRenderFunc', {
           key: 'logoFileId',
           value: logoFileId
         })
+      }
 
       let mainFileId = me.$route.query.mainFileId
-      if (mainFileId)
+      if (mainFileId) {
         me.$store.dispatch('ChangeRenderFunc', {
           key: 'mainFileId',
           value: mainFileId
         })
+      }
     },
     closeTip: function() {
       // 指引结束

@@ -30,35 +30,34 @@
 </style>
 <script type="text/javascript">
 import { mapState, mapActions, mapGetters } from 'vuex'
-import bus from "@/eventBus.js"
+import bus from '@/eventBus.js'
 export default {
-    name: 'tab-newtext',
-    props: {
-        msg: String //例子
-    },
-    computed: {},
-    data: function() {
-        return {
-            textC:''
-        }
-    },
-    created: function() {
-        const me = this;
-
-    },
-    methods: {
-        add_element:function(){
-            const me=this;
-            let id = `text_${(new Date()).valueOf()}`
-            let data = {
-                id: id,
-                src: '',
-                text:me.textC
-            }
-            //通知side-block打开元素模块分类选择
-            me.$emit('add-e', data)
-            me.textC=''
-        }
+  name: 'tab-newtext',
+  props: {
+    msg: String // 例子
+  },
+  computed: {},
+  data: function() {
+    return {
+      textC: ''
     }
-};
+  },
+  created: function() {
+    const me = this
+  },
+  methods: {
+    add_element: function() {
+      const me = this
+      let id = `text_${(new Date()).valueOf()}`
+      let data = {
+        id: id,
+        src: '',
+        text: me.textC
+      }
+      // 通知side-block打开元素模块分类选择
+      me.$emit('add-e', data)
+      me.textC = ''
+    }
+  }
+}
 </script>

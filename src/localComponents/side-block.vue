@@ -157,11 +157,11 @@
 </template>
 <script type="text/javascript">
 import { mapState, mapActions, mapGetters } from 'vuex'
-import bus from "@/eventBus.js"
+import bus from '@/eventBus.js'
 export default {
   name: 'side-block',
   props: {
-    msg: String //例子
+    msg: String // 例子
   },
   computed: {
     ...mapState({
@@ -176,7 +176,7 @@ export default {
         //     name: '项目',
         //     on: true,
         //     class: 'tab_on'
-        // }, 
+        // },
         {
           id: 'tab_layer',
           name: '图层',
@@ -209,13 +209,13 @@ export default {
         src: '',
         text: '',
         m_comp_name: 'product'
-      },
+      }
     }
   },
   methods: {
     tab_click_f: function(id) {
-      const me = this;
-      let click_i = -1;
+      const me = this
+      let click_i = -1
       for (let i = 0; i < me.side_tab.length; i++) {
         me.$set(me.side_tab[i], 'on', false)
         me.$set(me.side_tab[i], 'class', '')
@@ -234,7 +234,7 @@ export default {
       }
     },
     add_element_select: function(data) {
-      const me = this;
+      const me = this
       // me.$set(me.add_element, 'show', true)
       me.$set(me.add_element, 'id', data.id)
       me.$set(me.add_element, 'src', data.src)
@@ -242,16 +242,16 @@ export default {
       me.add_element_sure()
     },
     add_element_sure: function() {
-      const me = this;
-      //选择好元素归属模块后，通过中转站通信，告诉canvas要添加新元素
+      const me = this
+      // 选择好元素归属模块后，通过中转站通信，告诉canvas要添加新元素
       bus.$emit('add_element_func', me.add_element)
       me.$set(me.add_element, 'show', false)
       me.$set(me.add_element, 'id', '')
       me.$set(me.add_element, 'src', '')
       me.$set(me.add_element, 'text', '')
       // me.$set(me.add_element, 'm_comp_name', '')
-    },
-    
+    }
+
   },
   components: {
     'tab-layer': () => import('../localComponents/tab-layer.vue'),
@@ -261,6 +261,6 @@ export default {
     'tab-upload': () => import('../localComponents/tab-upload.vue'),
     'new-layer': () => import('../localComponents/new-side-layer.vue')
   }
-};
+}
 
 </script>

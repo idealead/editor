@@ -80,34 +80,34 @@
 import { mapState, mapActions, mapGetters } from 'vuex'
 
 export default {
-    name: 'tab-project',
-    props: {
-        msg: String //例子
-    },
-    computed: {
-        ...mapState({
-            project_m_comp: state => state.project_m_comp
-        })
-    },
-    data: function() {
-        return {
-            project_more: []
-        }
-    },
-    created: function() {
-        this.init_project_more()
-    },
-    methods: {
-        project_comp_show: function(index) {
-            const me = this;
-            me.$set(me.project_more, index, !me.project_more[index])
-        },
-        init_project_more: function() {
-            const me = this;
-            for (let i = 0; i < me.project_m_comp.length; i++) {
-                me.$set(me.project_more, i, false)
-            }
-        }
+  name: 'tab-project',
+  props: {
+    msg: String // 例子
+  },
+  computed: {
+    ...mapState({
+      project_m_comp: state => state.project_m_comp
+    })
+  },
+  data: function() {
+    return {
+      project_more: []
     }
-};
+  },
+  created: function() {
+    this.init_project_more()
+  },
+  methods: {
+    project_comp_show: function(index) {
+      const me = this
+      me.$set(me.project_more, index, !me.project_more[index])
+    },
+    init_project_more: function() {
+      const me = this
+      for (let i = 0; i < me.project_m_comp.length; i++) {
+        me.$set(me.project_more, i, false)
+      }
+    }
+  }
+}
 </script>

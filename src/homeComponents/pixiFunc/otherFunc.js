@@ -647,6 +647,19 @@ export default {
       document.getElementById('pixiCanvas').style.transform = `scale(${ratio}) translateX(-${me.window_w / 2}px)`
       // translateY(-710px)
     },
+    onresize: function () {
+      const me = this
+      let resize = null
+      return function () {
+        if (resize) {
+          clearTimeout(resize)
+          resize = null
+        }
+        resize = setTimeout(() => {
+          me.resetCanvas()
+        }, 100)
+      }
+    },
     canvasScale: function (type) {
       const me = this
       let ratio = me.canvas_scale
@@ -766,7 +779,7 @@ export default {
       let textmap = new Map()
       let fontFamily = {}
       for (let i = 0; i < me.container_arr.length; i++) {
-        if (typeof (me.container_arr[i].cont.children[0].textReplace) == 'number') {
+        if (typeof (me.container_arr[i].cont.children[0].textReplace) === 'number') {
           let textReplace = me.container_arr[i].cont.children[0].textReplace
           textmap.set(textReplace, textmap.get(textReplace) ? [...textmap.get(textReplace), me.container_arr[i].cont.children[0]] : [me.container_arr[i].cont.children[0]])
           fontFamily[`${me.container_arr[i].cont.children[0].style.fontFamily}`] =

@@ -14,8 +14,16 @@ Vue.use(VueLazyload)
 Vue.use(ElementUI)
 Vue.config.productionTip = false
 
-axios.defaults.baseURL = '/api'
-axios.defaults.timeout = 3000
+// 请求设置
+if (process.env.NODE_ENV === 'production') {
+  axios.defaults.baseURL = '/api'
+} else {
+  // 测试和本地环境testApi
+  axios.defaults.baseURL = '/testApi'
+}
+axios.defaults.timeout = 10000
+
+// 组件注册
 const requireComponent = require.context(
   // 其组件目录的相对路径
   './components',
