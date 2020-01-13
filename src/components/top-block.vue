@@ -10,7 +10,7 @@
       <input
         type="text"
         name
-        v-model="set_mould_name"
+        :value="set_mould_name"
         @change="mouldNameChange"
         :placeholder="mould_name"
       />

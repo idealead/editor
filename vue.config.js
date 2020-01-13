@@ -18,7 +18,7 @@ module.exports = {
         }
       },
       '/testApi': {
-        target: '//ht.idealead.hbindex.com/apii', // API测试服务器的地址
+        target: 'http://dev.cyrd.gdinsight.com/api', // API测试服务器的地址
         changeOrigin: true,
         pathRewrite: {
           '^/testApi': ''

@@ -19,9 +19,9 @@ if (process.env.NODE_ENV === 'production') {
   axios.defaults.baseURL = '/api'
 } else {
   // 测试和本地环境testApi
-  axios.defaults.baseURL = '/api'
+  axios.defaults.baseURL = '/testApi'
 }
-axios.defaults.timeout = 3000
+axios.defaults.timeout = 10000
 
 // 组件注册
 const requireComponent = require.context(
