@@ -1,7 +1,5 @@
 <template>
   <div id="app">
-    <!-- <div class='mask'>
-    </div>-->
     <div class="font">
       <span v-for="(item,index) of fontF" :class="`font${index+1}`" :key="index">字体是啥呢</span>
     </div>
@@ -52,12 +50,12 @@ export default {
     // }
   },
   mounted: function() {
-    const me = this
+    // const me = this
     // window.addEventListener('unload', me.saveState())
   },
   created: function() {
-    const me = this
-    // 路由前设置
+    // const me = this
+    // // 路由前设置
   }
 }
 </script>

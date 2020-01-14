@@ -28,7 +28,7 @@ module.exports = {
   },
 
   lintOnSave: true,
-
+  productionSourceMap: false,
   configureWebpack: config => {
     if (process.env.NODE_ENV === 'production') {
       // config.optimization.minimizer[0].options.terserOptions.compress.warnings = false
