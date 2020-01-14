@@ -15,11 +15,17 @@ Vue.use(ElementUI)
 Vue.config.productionTip = false
 
 // 请求设置
-if (process.env.NODE_ENV === 'production') {
-  axios.defaults.baseURL = '/api'
-} else {
-  // 测试和本地环境testApi
+if (process.env.NODE_ENV === 'development') {
+  // 本地环境testApi
   axios.defaults.baseURL = '/testApi'
+} else {
+  if (process.env.VUE_APP_TITLE === 'tBuild') {
+    // 测试环境api
+    axios.defaults.baseURL = '//dev.cyrd.gdinsight.com/api'
+  } else {
+    // 正式环境api
+    axios.defaults.baseURL = '//ht.idealead.hbindex.com/api'
+  }
 }
 axios.defaults.timeout = 10000
 

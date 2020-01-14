@@ -86,6 +86,7 @@ const apifile = {
   get_user_info: '/User/get_user_info'
   // ***************************************************home(canvas)页面以及其子组件
 }
+console.log(process.env.VUE_APP_TITLE)
 if (process.env.NODE_ENV === 'development' || process.env.VUE_APP_TITLE === 'tBuild') {
   // 测试构建和本地环境
   apifile.images = 'http://dev.cyrd.gdinsight.com/uploadFiles/images/'
