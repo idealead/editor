@@ -299,7 +299,7 @@ h2 {
 import { mapState, mapActions, mapGetters } from 'vuex'
 import bus from '@/eventBus.js'
 import axios from 'axios'
-import _ from 'lodash'
+// import _ from 'lodash'
 export default {
   name: 'myDesign',
   data: function() {

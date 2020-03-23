@@ -727,7 +727,7 @@ export default {
   },
   data() {
     return {
-      reRender: true,
+      // reRender: true,
       scale: scale,
       rotate: rotate,
       stretch: stretch,

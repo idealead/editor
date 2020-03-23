@@ -4,6 +4,7 @@ import router from './router/router'
 import store from './store/store'
 import upperFirst from 'lodash/upperFirst'
 import camelCase from 'lodash/camelCase'
+import _ from 'lodash'
 import ElementUI from 'element-ui'
 import axios from 'axios'
 import bus from '@/eventBus.js'
@@ -13,6 +14,7 @@ import VueLazyload from 'vue-lazyload'
 Vue.use(VueLazyload)
 Vue.use(ElementUI)
 Vue.config.productionTip = false
+window[_] = _
 
 // 请求设置
 if (process.env.NODE_ENV === 'development') {
